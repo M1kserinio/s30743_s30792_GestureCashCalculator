@@ -214,3 +214,7 @@ datasets/
 trainset/
 valset/
 testset/
+runs/
+models/
+*.pt
+*.zip
