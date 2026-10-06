@@ -13,11 +13,11 @@ class DatasetStats:
         for split_name in SPLITS:
             stats[split_name] = self.count_objects(split[split_name])
 
-        self.print_table(split, stats)
         self.save_csv(split, stats)
         self.check_missing(stats)
 
     def count_objects(self, samples):
+        # class_id x y width height
         counts = {name: 0 for name in self.class_names}
         empty = 0
         for image, label in samples:
@@ -27,16 +27,10 @@ class DatasetStats:
             if not lines:
                 empty += 1
             for line in lines:
-                class_id = int(line.split()[0])  #linijka: klasa x_srodka y_srodka szerokosc wysokosc
+                class_id = int(line.split()[0])
                 counts[self.class_names[class_id]] += 1
         return {"counts": counts, "empty": empty}
 
-    def print_table(self, split, stats):
-        print("\nklasa          train   val  test")
-        for name in self.class_names:
-            print(f"{name:<14}" + "".join(f"{stats[s]['counts'][name]:>6}" for s in SPLITS))
-        print(f"{'tlo (puste)':<14}" + "".join(f"{stats[s]['empty']:>6}" for s in SPLITS))
-        print(f"{'zdjecia':<14}" + "".join(f"{len(split[s]):>6}" for s in SPLITS))
 
     def save_csv(self, split, stats):
         #ta sama tabela do csv - przyda sie do rozdzialu o danych

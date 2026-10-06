@@ -13,7 +13,7 @@ class YoloTrainer:
 
     def train_all(self):
         if not DATA_YAML.exists():
-            print("Brak data.yaml - najpierw uruchom prepare_dataset.py")
+            print("Brak data.yaml - najpierw uruchom python -m scripts.prepare_dataset")
             return
 
         MODELS_DIR.mkdir(exist_ok=True)
@@ -32,13 +32,11 @@ class YoloTrainer:
             device=self.device,
             seed=SEED,
             deterministic=True,
-            patience=30,  #jak przez 30 epok nie ma poprawy to konczy wczesniej
-            #YOLO domyslnie odbija obrazki w poziomie, ale apka nie odbija kamery,
-            #wiec lustrzanego banknotu (odwrocone cyfry) model nigdy nie zobaczy
+            patience=30,
             fliplr=0.0,
             project=str(RUNS_DIR),
             name=model_name,
-            exist_ok=True,  #nadpisuje stary trening zamiast robic yolo11n2, yolo11n3...
+            exist_ok=True,
         )
         self.save_best(model, model_name)
 

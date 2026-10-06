@@ -1,8 +1,9 @@
+"""Prepare a YOLO dataset from a Roboflow export."""
+
 import sys
 
 from objects.roboflow_dataset import RoboflowDataset
 
-#zip z Roboflow (format YOLOv8), mozna tez podac przy odpalaniu: python prepare_dataset.py ~/Downloads/plik.zip
 ROBOFLOW_ZIP = "roboflow.zip"
 
 if __name__ == "__main__":

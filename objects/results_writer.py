@@ -16,7 +16,7 @@ class ResultsWriter:
         print(f"Zapisano {RESULTS_DIR / file_name}")
 
     def save_map_vs_fps_plot(self, summary, device_names):
-        #import tutaj, bo prepare_dataset.py nie potrzebuje wykresow
+        #importuje tutaj, bo i tak reszta nie potzrebuhje tego importa a i tak sie laduje mega
         import matplotlib
         matplotlib.use("Agg")  #wykres tylko do pliku, bez otwierania okna
         import matplotlib.pyplot as plt

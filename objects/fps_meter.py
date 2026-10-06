@@ -15,7 +15,7 @@ class FpsMeter:
         #nowy model dla kazdego urzadzenia, bo YOLO zapamietuje urzadzenie z pierwszego predict
         model = YOLO(str(weights))
 
-        #rozgrzewka - pierwsze predykcje sa duzo wolniejsze (ladowanie na GPU itp.), nie liczymy ich
+        #pierwsze predykcje sa duzo wolniejsze , nie licze ich
         for i in range(self.warmup):
             self.predict(model, i, device)
 
