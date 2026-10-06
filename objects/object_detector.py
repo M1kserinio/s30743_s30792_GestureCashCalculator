@@ -1,7 +1,18 @@
+import filecmp
+
 import cv2
 from ultralytics import YOLO
 
-from objects.config import BEST_MODEL, CLASS_VALUES, CONFIDENCE, HISTORY_SIZE, IMGSZ, best_device
+from objects.config import (
+    BEST_MODEL,
+    CLASS_VALUES,
+    CONFIDENCE,
+    HISTORY_SIZE,
+    IMGSZ,
+    YOLO_MODELS,
+    best_device,
+    model_path,
+)
 
 
 class ObjectDetector:
@@ -9,6 +20,35 @@ class ObjectDetector:
         self.model = YOLO(str(BEST_MODEL))
         self.device = best_device()
         self.history = []  #ostatnie odczyty (lewa, prawa)
+        self.model_options = [
+            (name, model_path(name))
+            for name in YOLO_MODELS
+            if model_path(name).exists()
+        ]
+        self.current_model_index = next(
+            (
+                index
+                for index, (_, path) in enumerate(self.model_options)
+                if filecmp.cmp(BEST_MODEL, path, shallow=False)
+            ),
+            -1,
+        )
+        best_name = (
+            self.model_options[self.current_model_index][0]
+            if self.current_model_index >= 0
+            else "best"
+        )
+        self.model_name = f"{best_name} (best)"
+
+    def next_model(self):
+        if not self.model_options:
+            raise FileNotFoundError("Brak wytrenowanych wariantow YOLO w folderze models/")
+
+        self.current_model_index = (self.current_model_index + 1) % len(self.model_options)
+        self.model_name, path = self.model_options[self.current_model_index]
+        self.model = YOLO(str(path))
+        self.history.clear()
+        print(f"model YOLO: {self.model_name}")
 
     def detection(self, img, zones):
         result = self.model.predict(img, imgsz=IMGSZ, conf=CONFIDENCE, device=self.device, verbose=False)[0]

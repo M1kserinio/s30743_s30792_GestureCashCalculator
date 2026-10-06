@@ -1,16 +1,27 @@
+import ctypes
+import sys
+
 import cv2
 
 
 class UI:
     def __init__(self, window_name="img"):
         self.window_name = window_name
+        self.shift_was_pressed = False
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.window_name, 1200, 800)
 
-    def draw(self, img, zones, counter, operation):
+    def draw(self, img, zones, counter, operation, model_name=None):
         self.draw_zones(img, zones)
         self.draw_values(img, counter)
         self.draw_operation(img, counter, operation)
+        if model_name:
+            self.draw_model_name(img, model_name)
+
+    def draw_model_name(self, img, model_name):
+        text = f"MODEL: {model_name}"
+        cv2.putText(img, text, (img.shape[1] // 2 - 140, 50),
+                    cv2.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 255), 2)
 
     def draw_zones(self, img, zones):
         h = img.shape[0]
@@ -44,6 +55,15 @@ class UI:
 
     def quit_pressed(self):
         return cv2.waitKey(1) == ord("q")
+
+    def model_switch_pressed(self):
+        if sys.platform != "win32":
+            return False
+
+        shift_is_pressed = bool(ctypes.windll.user32.GetAsyncKeyState(0x10) & 0x8000)
+        pressed_now = shift_is_pressed and not self.shift_was_pressed
+        self.shift_was_pressed = shift_is_pressed
+        return pressed_now
 
     def close(self):
         cv2.destroyAllWindows()
