@@ -19,7 +19,7 @@ class YoloEvaluator:
     def evaluate_all(self):
         model_names = [name for name in YOLO_MODELS if model_path(name).exists()]
         if not model_names:
-            print("Brak modeli w models/ - najpierw uruchom train_yolo.py")
+            print("Brak modeli w models/ - najpierw uruchom python -m scripts.train_yolo")
             return
 
         fps_meter = FpsMeter(self.load_test_images())
@@ -71,7 +71,7 @@ class YoloEvaluator:
         return row, self.per_class_rows(model, model_name, test)
 
     def run_val(self, model, model_name, split):
-        #wykresy (macierz pomylek, krzywe PR) tylko dla testu - do pracy
+        #wykresy (macierz pomylek, krzywe PR) do testow
         return model.val(data=str(DATA_YAML), split=split, imgsz=IMGSZ, plots=(split == "test"),
                          project=str(RUNS_DIR / "eval"), name=f"{model_name}_{split}", exist_ok=True)
 

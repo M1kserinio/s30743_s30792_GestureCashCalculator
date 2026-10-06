@@ -12,7 +12,7 @@ IMAGE_EXTS = [".jpg", ".jpeg", ".png"]
 
 class RoboflowDataset:
     def __init__(self, zip_path):
-        self.zip_path = zip_path  #zip pobrany z Roboflow w formacie YOLOv8
+        self.zip_path = zip_path  #roboflow.zip
         self.class_names = []
 
     def prepare(self):
@@ -32,7 +32,6 @@ class RoboflowDataset:
         print(f"\nGotowe: {DATA_YAML}")
 
     def unzip(self):
-        #czyscimy stary eksport, zeby nie pomieszac zdjec z dwoch wersji
         if EXPORT_DIR.exists():
             shutil.rmtree(EXPORT_DIR)
         with zipfile.ZipFile(self.zip_path) as zf:
@@ -45,13 +44,13 @@ class RoboflowDataset:
         return data["names"]
 
     def check_class_names(self):
+        # pomocniczna, usunac na final
         for name in self.class_names:
             if name not in CLASS_VALUES:
-                print(f"UWAGA: klasa '{name}' nie ma kwoty w CLASS_VALUES (objects/config.py) - w apce bedzie 0 zl")
+                print(f"UWAGA: klasa '{name}' nie ma kwoty w CLASS_VALUES (objects/config.py), bedzie 0 zl")
 
     def find_images(self):
-        #Roboflow daje foldery train/valid/test, w kazdym images/ i labels/
-        #bierzemy wszystko razem i dzielimy od nowa w DatasetSplitter
+        # do dzielenia w dataSplitter
         samples = []
         for image in sorted(EXPORT_DIR.glob("*/images/*")):
             if image.suffix.lower() not in IMAGE_EXTS:

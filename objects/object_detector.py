@@ -29,7 +29,7 @@ class ObjectDetector:
         return detected_objects
 
     def get_zone(self, middle, zones):
-        #strefa po srodku banknotu (tak jak w Gesture po srodku dloni)
+        #strefa po srodku banknotu
         x_left, x_right = zones
         if middle < x_left:
             return "LEFT"

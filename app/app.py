@@ -47,7 +47,7 @@ class App:
         operation = self.gesture_system.detect_info(hand_info)
         self.counter.apply(operation)
 
-        #ramki pieniedzy rysujemy dopiero na koncu, z tego samego powodu co wyzej
+        #ramki pieniedzy rysujemy rowniez na koncu
         if self.object_system:
             self.object_system.draw(img, detected_objects)
         self.ui.draw(img, zones, self.counter, operation)

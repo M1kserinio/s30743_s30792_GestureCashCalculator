@@ -20,15 +20,13 @@ VAL_PART = 0.2
 YOLO_MODELS = ["yolo11n", "yolo11s", "yolo11m"]  #n (najszybszy) -> s -> m (najdokladniejszy)
 EPOCHS = 100
 BATCH = 16  #jak zabraknie pamieci to zmniejszyc do 8
-IMGSZ = 640  #rozmiar obrazka dla YOLO, taki sam w treningu, ewaluacji i apce (jak monety slabo wyjda, sprobowac 960)
+IMGSZ = 640  #(jak monety slabo wyjda to sprobowac 960)
 SEED = 0  #ten sam seed wszedzie -> przy powtorzeniu wychodza te same wyniki
 
-#apka
-CONFIDENCE = 0.5  #wykrycia z mniejsza pewnoscia sa ignorowane
+CONFIDENCE = 0.5
 HISTORY_SIZE = 10  #z ilu ostatnich klatek bierzemy najczestszy odczyt kwoty
 
 #nazwa klasy z Roboflow -> ile to zlotych
-#nazwy klas w Roboflow musza byc DOKLADNIE takie jak tutaj
 CLASS_VALUES = {
     #banknoty
     "10zl": 10.0,
@@ -56,10 +54,9 @@ def model_path(model_name):
 
 
 def best_device():
-    import torch  #import tutaj a nie na gorze, bo prepare_dataset.py nie potrzebuje torcha
-
+    import torch
     if torch.cuda.is_available():
-        return "0"  #"0" = pierwsza karta NVIDIA (np. w Google Colab)
+        return "0"
     if torch.backends.mps.is_available():
-        return "mps"  #GPU w Macu
+        return "mps"
     return "cpu"

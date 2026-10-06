@@ -12,8 +12,7 @@ class DatasetSplitter:
         names = sorted(groups)
         random.Random(SEED).shuffle(names)
 
-        #najpierw zapelniamy test, potem val, reszta do train
-        #gdyby zaczac od train, to przy malej liczbie sesji test moglby zostac pusty
+        #najpierw zapelniamy test -> val i reszta do train ( train na koncu bo gdyby bylo na odwrot. to przy malej lizbie sesji test moglby byc pusty)
         split = {"train": [], "val": [], "test": []}
         for name in names:
             if len(split["test"]) < TEST_PART * len(samples):
@@ -24,8 +23,7 @@ class DatasetSplitter:
                 split["train"] += groups[name]
         return split
 
-    def make_groups(self, samples):
-        #zdjecia z tej samej grupy zawsze trafiaja do tego samego zbioru
+    def make_groups(self, samples): # para zdjecie-etykieta
         groups = {}
         for image, label in samples:
             name = self.group_name(image)
@@ -35,16 +33,8 @@ class DatasetSplitter:
         return groups
 
     def group_name(self, image):
-        #Roboflow zmienia nazwe: s01_biurko_12.jpg -> s01_biurko_12_jpg.rf.<losowy_hash>.jpg
-        #wiec oryginalna nazwa to wszystko przed ".rf."
         original = image.name.split(".rf.")[0]
-
-        #nazwa zaczyna sie od sesji (s01_, s02_...) -> cala sesja idzie do jednego zbioru
-        #inaczej prawie takie same zdjecia z jednej sesji bylyby w train i w test -> za wysokie mAP
         first_part = original.split("_")[0]
-        if first_part.startswith("s") and first_part[1:].isdigit():
+        if first_part[1:].isdigit():
             return first_part
-
-        #bez sesji kazde zdjecie jest osobno
-        #(kopie z augmentacji maja ta sama oryginalna nazwe, wiec i tak zostaja razem)
         return original
