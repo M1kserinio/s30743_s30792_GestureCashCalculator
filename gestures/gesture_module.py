@@ -1,145 +1,116 @@
-import math
-
-import cv2
-import mediapipe as mp
 import numpy as np
-import pickle
+import mediapipe as mp
+import cv2, os, pickle
 
-class Gesture:
+MIDDLE_MCP = 9
+
+#A metoda stałe
+PROG_ROZSTAW = 0.3
+PROG_OK = 0.35
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+B_MODEL_PATH = os.path.join(ROOT, "gest_results", "B_MLP_model.pkl")
+C_MODEL_PATH = os.path.join(ROOT, "gest_results", "C_SVC_model.pkl")
+
+class Gesture():
     def __init__(self):
         self.hands = mp.solutions.hands.Hands(
             max_num_hands=2,
             min_detection_confidence=0.75,
             min_tracking_confidence=0.65,
         )
-        self.draw = mp.solutions.drawing_utils
-        self.last_gesture = ""
-        self.model = pickle.load(open("gesture_model.pkl", "rb"))
+        self.gesture_labels = ("OK_HAND", "SPREAD_HAND", "TIGHT_HAND", "FIST", "POINT", "THUMB", "TWO")
+        with open(B_MODEL_PATH, "rb") as f:
+            self.modelB = pickle.load(f)
+        with open(C_MODEL_PATH, "rb") as f:
+            self.modelC = pickle.load(f)
 
-    def get_fingers(self, lm, label):
-        if label == "Right":
-            kciuk = 0 if lm[4][0] < lm[3][0] else 1
-        else:
-            kciuk = 0 if lm[4][0] > lm[3][0] else 1
-        wskazujacy = 1 if lm[8][1] < lm[6][1] else 0
-        srodkowy = 1 if lm[12][1] < lm[10][1] else 0
-        serdeczny = 1 if lm[16][1] < lm[14][1] else 0
-        maly = 1 if lm[20][1] < lm[18][1] else 0
-        return [kciuk, wskazujacy, srodkowy, serdeczny, maly]
 
-    def get_gesture(self, fingers):
-        if fingers == [0, 1, 0, 0, 0]:
-            return "POINT"
-        if fingers == [0, 0, 1, 0, 0]:
-            return "MIDDLE"
-        if fingers == [1, 0, 0, 0, 0]:
-            return "THUMB"
-        if fingers == [0, 0, 0, 1, 0]:
-            return "SERD"
-        if fingers == [0, 0, 0, 0, 1]:
-            return "SMALL"
-        if fingers == [1,1,1,1,1]:
-            return "FULL"
-        if fingers == [0,0,0,0,0]:
-            return "FIST"
-        return ""
+    def detect_gesture(self, img, mode="B"):
 
-    def detection(self, img, middle_zone, manual=True):
-        h, w = img.shape[:2]
+        h, w, _ = img.shape
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        result = self.hands.process(img_rgb)
+        handLm = self.hands.process(img_rgb)
 
-        detected_hands = [] #Na dwie ręce lista
+        detected_hands = [] #na obie rece lista
+        gesture = None
 
-        if result.multi_hand_landmarks:
-            #hand - reka, handednss - sprawdza czy lwea czy prawa
-            for hand, handedness in zip(result.multi_hand_landmarks, result.multi_handedness):
-                self.draw.draw_landmarks(img, hand, mp.solutions.hands.HAND_CONNECTIONS)
-                label = handedness.classification[0].label #lewa czy prawa
+        if handLm.multi_hand_landmarks:
+            # hand-reka, handedness-sprawdza czy lewa, czy prawa
+            for hand, handedness in zip(handLm.multi_hand_landmarks, handLm.multi_handedness):
+                label = handedness.classification[0].label
+                normalized_lm = self.normalize_landmarks(hand)
+                if mode == "A":
+                    gesture = self.A(normalized_lm)
+                elif mode == "B":
+                    gesture = self.B(normalized_lm)
+                elif mode == "C":
+                    gesture = self.C(normalized_lm)
 
-                lm = [(int(p.x * w), int(p.y * h)) for p in hand.landmark]
-                fingers = self.get_fingers(lm, label)
-                gesture = self.get_gesture(fingers) if manual else self.predict_gesture(hand)
-
-                #srodek lapy
-                middle = int(hand.landmark[9].x * w)
-                in_middle = True if middle_zone[0] < middle < middle_zone[1] else False
-
-                detected_hands.append({
-                    "label": label,
-                    "fingers": fingers,
-                    "in_middle": in_middle,
-                    "lm": hand,
-                    "gesture": gesture
-                })
-
+                detected_hands.append({"side": label, "gesture": gesture, "landmarks": hand})
         return detected_hands
 
-    def detect_info(self, detected_hands):
-        # bierzemy dane z dwoch rak
-        hands = {hand["label"]: hand for hand in detected_hands}
-        left_hand = hands.get("Right") # Odwrócone w mediapipe
-        right_hand = hands.get("Left") # Odwrócone w mediapipe
-        l_gest, r_gest = None, None
-        if left_hand:
-            l_gest = left_hand["gesture"]
-            if not left_hand["in_middle"]:
-                left_hand = None
-        if right_hand:
-            r_gest = right_hand["gesture"]
-            if not right_hand["in_middle"]:
-                right_hand = None
+    def A(self, lm): #Geometryczne, matematyczne podejśćie do klasyfikacji
+        finger_list = (self._finger_extended(lm[8], lm[6]),  # index
+                       self._finger_extended(lm[12], lm[10]),  # middle
+                       self._finger_extended(lm[16], lm[14]),  # ring
+                       self._finger_extended(lm[20], lm[18]),  # pinky
+                       bool(self._distance(lm[17], lm[4]) > self._distance(lm[17], lm[3])) #thumb (kciuck zgina sie w strone malego palca)
+                       )
 
-        if len(detected_hands) == 1:
-            # LEFT HAND
-            if left_hand:
-                if l_gest == "POINT":  # Wskazujący
-                    return "L_ADD"
-                elif l_gest == "THUMB":  # Kciuk
-                    return "L_REMOVE"
-                elif l_gest == "FULL_HAND":
-                    return "L_FULL"
-                elif l_gest == "OK_SIGN":
-                    return "L_OK"
-            # RIGHT HAND
-            if right_hand:
-                if r_gest == "POINT":  # Wskazujący
-                    return "R_ADD"
-                elif r_gest == "THUMB":  # Kciuk
-                    return "R_REMOVE"
-                elif r_gest == "FULL_HAND":
-                    return "R_FULL"
-                elif r_gest == "OK_SIGN":
-                    return "R_OK"
+        #mediana z rozstawu palcow
+        rozstaw = np.mean([self._distance(f1, f2) for f1, f2 in [(lm[8], lm[12]), (lm[12], lm[16]), (lm[16], lm[20])]])
 
-        if left_hand and right_hand:
-            if l_gest == "POINT" and r_gest == "POINT":  # Oba wskazujące
-                return "SUM"
+        if finger_list[1] and finger_list[2] and finger_list[3]:
+            if self._distance(lm[4], lm[8]) < PROG_OK:
+                return "OK_HAND"
 
-        return "NONE"
+        match finger_list:
+            case (True, True, True, True, True):
+                if rozstaw > PROG_ROZSTAW:
+                    return "SPREAD_HAND"
+                return "TIGHT_HAND"
+            case (False, False, False, False, False):
+                return "FIST"
+            case (True, False, False, False, False):
+                return "POINT"
+            case (True, True, False, False, False):
+                return "TWO"
+            case (False, False, False, False, True):
+                return "THUMB"
+            case _:
+                return "NONE"
 
-    def predict_gesture(self, hand):
-        features = self.get_normalized_landmarks(hand)
-        features = np.array(features).reshape(1, -1)
-        prediction = self.model.predict(features)[0]
-        return prediction
+    def B(self, lm): #Uczenie maszynowe na surowych, znormalizowanych danych
+        lm_flat = lm.flatten().reshape(1, -1)
+        gesture = self.modelB.predict(lm_flat)[0]
+        return gesture
 
-    def get_normalized_landmarks(self, hand):
-        landmarks = []
-        for lm in hand.landmark:
-            landmarks.append([lm.x, lm.y])
+    def C(self, lm): #Uczenie maszynowe na cechach inżynieryjnych
+        lm_flat = lm.flatten().reshape(1, -1)
+        gesture = self.modelC.predict(lm_flat)[0]
+        return gesture
 
-        landmarks = np.array(landmarks)
+    def _distance(self, point1, point2):
+        """Literalnie odleglosc punktow"""
+        return np.linalg.norm(np.array(point1) - np.array(point2))
 
-        #nadgarstek jest punktem 0,0
-        base_x, base_y = landmarks[0]
-        landmarks = landmarks - [base_x, base_y]
+    def _finger_extended(self, tip, pip):
+        """Sprawdza, czy dany palec jest wyprostowany."""
+        # bool() bo bez niego nie rozpoznawal finger list nic xd
+        return bool(self._distance(0, tip) > self._distance(0, pip))
 
-        #dystans od nadgarstka
-        distances = np.linalg.norm(landmarks, axis=1)
-        max_distance = np.max(distances)
+    @staticmethod
+    def normalize_landmarks(handLm):
+        """Normalizacja landmarków, żeby wszystkie opierały sie na nadgarstkui były w przedziale 0-1.5."""
+        landmarks = [[lm.x, lm.y, lm.z] for lm in handLm.landmark]  # pobranie współrzędnych
+        landmarks = np.array(landmarks)  # konwersja do tablicy numpy
+        landmarks -= landmarks[
+            0]  # nadgarstek staje się bazowym punktem odniesienia, przesuwamy inne lmy względem niego
 
-        if max_distance > 0:
-            landmarks = landmarks / max_distance
+        middle_mip_scale = np.linalg.norm(
+            landmarks[MIDDLE_MCP][:2])  # obliczenie odległości od nadgarstka do środkowego stawu palca
+        if middle_mip_scale > 0:
+            landmarks /= middle_mip_scale  # normalizacja skali względem middle mipa
 
-        return landmarks.flatten().tolist()
+        return landmarks
