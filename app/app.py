@@ -18,6 +18,7 @@ class App:
 
         self.split_left = 0.15
         self.split_right = 0.85
+        self.model_switch_gesture_active = False
 
     def run(self):
         while True:
@@ -29,6 +30,8 @@ class App:
             self.ui.show(img)
             if self.ui.quit_pressed():
                 break
+            if self.object_system and self.ui.model_switch_pressed():
+                self.object_system.next_model()
 
         self.cap.release()
         self.ui.close()
@@ -37,6 +40,7 @@ class App:
         zones = self.get_zones(img)
 
         detected_objects = []
+        model_name = self.object_system.model_name if self.object_system else None
         if self.object_system:
             #YOLO przed mediapipe, bo mediapipe rysuje kropki dloni na img i YOLO by je widzial
             detected_objects = self.object_system.detection(img, zones)
@@ -45,12 +49,16 @@ class App:
 
         hand_info = self.gesture_system.detection(img, zones, manual=False)
         operation = self.gesture_system.detect_info(hand_info)
+        model_switch_gesture = operation == "MODEL_NEXT"
+        if self.object_system and model_switch_gesture and not self.model_switch_gesture_active:
+            self.object_system.next_model()
+        self.model_switch_gesture_active = model_switch_gesture
         self.counter.apply(operation)
 
         #ramki pieniedzy rysujemy rowniez na koncu
         if self.object_system:
             self.object_system.draw(img, detected_objects)
-        self.ui.draw(img, zones, self.counter, operation)
+        self.ui.draw(img, zones, self.counter, operation, model_name)
 
     def get_zones(self, img):
         #granice stref w pikselach: lewa strefa < x_left, prawa strefa > x_right
