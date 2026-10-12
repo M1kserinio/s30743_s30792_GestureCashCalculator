@@ -18,6 +18,7 @@ class App:
 
         self.split_left = 0.15
         self.split_right = 0.85
+        self.model_switch_gesture_active = False
 
         self.modes = ("A", "B", "C")
         self.mode = "A"
@@ -83,6 +84,8 @@ class App:
             self.ui.show(img)
             if self.ui.quit_pressed():
                 break
+            if self.object_system and self.ui.model_switch_pressed():
+                self.object_system.next_model()
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord("\t"):
@@ -95,6 +98,7 @@ class App:
         zones = self.get_zones(img)
 
         detected_objects = []
+        model_name = self.object_system.model_name if self.object_system else None
         if self.object_system:
             # YOLO przed mediapipe, bo mediapipe rysuje kropki dloni na img i YOLO by je widzial
             detected_objects = self.object_system.detection(img, zones)
@@ -105,11 +109,19 @@ class App:
         hand_gesture = self.remove_duplicate_hands(hand_gesture)
         operations = self.stabilize([self.to_operation(hand) for hand in hand_gesture])
         self.counter.apply(operations[0] if operations else "NONE")
+        hand_info = self.gesture_system.detection(img, zones, manual=False)
+        operation = self.gesture_system.detect_info(hand_info)
+        model_switch_gesture = operation == "MODEL_NEXT"
+        if self.object_system and model_switch_gesture and not self.model_switch_gesture_active:
+            self.object_system.next_model()
+        self.model_switch_gesture_active = model_switch_gesture
+        self.counter.apply(operation)
 
         # ramki pieniedzy rysujemy dopiero na koncu, z tego samego powodu co wyzej
         if self.object_system:
             self.object_system.draw(img, detected_objects)
         self.ui.draw(img, zones, self.counter, operations, self.mode)
+        self.ui.draw(img, zones, self.counter, operation, model_name)
 
     def get_zones(self, img):
         #granice stref w pikselach: lewa strefa < x_left, prawa strefa > x_right
