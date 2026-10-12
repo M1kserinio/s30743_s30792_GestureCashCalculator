@@ -11,14 +11,19 @@ class UI:
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.window_name, 1200, 800)
 
-    def draw(self, img, zones, counter, operation, model_name=None):
+    def draw(self, img, zones, counter, operations, mode):
         self.draw_zones(img, zones)
         self.draw_values(img, counter)
+        self.draw_operation(img, operations[0] if operations else "NONE")
         self.draw_operation(img, counter, operation)
         if model_name:
             self.draw_model_name(img, model_name)
-
-    def draw_model_name(self, img, model_name):
+        cv2.putText(img, f"TRYB: {mode}  (TAB - zmiana, Q/ESC - wyjscie)", (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        for i, operation in enumerate(operations[1:], start=1):
+            cv2.putText(img, operation, (10, img.shape[0] - 50 - 45 * i),
+                        cv2.FONT_HERSHEY_TRIPLEX, 1.2, (0, 200, 255), 3)
+     def draw_model_name(self, img, model_name):
         text = f"MODEL: {model_name}"
         cv2.putText(img, text, (img.shape[1] // 2 - 140, 50),
                     cv2.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 255), 2)
@@ -36,14 +41,12 @@ class UI:
         cv2.putText(img, f"{counter.right():.2f} zl", (int(w * 0.85), 50),
                     cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 2)
 
-    def draw_operation(self, img, counter, operation):
+    def draw_operation(self, img, operation):
         match operation:
-            case "L_ADD" | "L_REMOVE" | "L_FULL" | "L_OK":
+            case "L_SPREAD" | "L_FIST" | "L_TIGHT" | "L_POINT" | "L_TWO" | "L_THUMB" | "L_OK":
                 text = f"LEWA: {operation}"
-            case "R_ADD" | "R_REMOVE" | "R_FULL" | "R_OK":
+            case "R_SPREAD" | "R_FIST" | "R_TIGHT" | "R_POINT" | "R_TWO" | "R_THUMB" | "R_OK":
                 text = f"PRAWA: {operation}"
-            case "SUM":
-                text = f"SUMA: {counter.total():.2f}"
             case "NONE" | _:
                 text = "NONE"
 
