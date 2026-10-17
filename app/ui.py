@@ -11,11 +11,10 @@ class UI:
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.window_name, 1400, 900)
 
-    def draw(self, img, zones, counter, operations, mode):
+    def draw(self, img, zones, counter, operations, mode, model_name=None):
         self.draw_zones(img, zones)
         self.draw_values(img, counter)
         self.draw_operation(img, operations[0] if operations else "NONE")
-        self.draw_operation(img, counter, operation)
         if model_name:
             self.draw_model_name(img, model_name)
         cv2.putText(img, f"TRYB: {mode}  (TAB - zmiana, Q/ESC - wyjscie)", (10, 30),
@@ -23,7 +22,8 @@ class UI:
         for i, operation in enumerate(operations[1:], start=1):
             cv2.putText(img, operation, (10, img.shape[0] - 50 - 45 * i),
                         cv2.FONT_HERSHEY_TRIPLEX, 1.2, (0, 200, 255), 3)
-     def draw_model_name(self, img, model_name):
+
+    def draw_model_name(self, img, model_name):
         text = f"MODEL: {model_name}"
         cv2.putText(img, text, (img.shape[1] // 2 - 140, 50),
                     cv2.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 255), 2)
@@ -56,8 +56,9 @@ class UI:
     def show(self, img):
         cv2.imshow(self.window_name, img)
 
-    def quit_pressed(self):
-        return cv2.waitKey(1) == ord("q")
+    def quit_pressed(self, key):
+        """key to wynik cv2.waitKey(1) & 0xFF odczytany raz w App.run"""
+        return key in (ord("q"), 27)
 
     def model_switch_pressed(self):
         if sys.platform != "win32":
