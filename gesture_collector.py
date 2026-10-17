@@ -38,6 +38,7 @@ def generate_csv(hands_processor):
                 for img_name in os.listdir(gesture_dir): #dla każdego zdjęcia w folderze
                     img_path = os.path.join(gesture_dir, img_name)
                     frame = cv2.imread(img_path) #pobieramy zdjęcie
+
                     if frame is None:
                         continue
 
@@ -54,7 +55,7 @@ def generate_csv(hands_processor):
                         mirrored_lm[:, 0] *= -1 #odwracamy współrzędną x dla lustrzanego odbicia (wszystkie wiersze, pierwsza kolumna)
                         flat_mirrored_data = mirrored_lm.flatten().tolist() #zmieniamy w jedną linię do zapisu
                         writer.writerow([person, gesture] + flat_mirrored_data)
-
+        print("Done")
 
 def collecting():
     """Metoda rozpoczynająca proces zbierania gestów."""
@@ -94,7 +95,7 @@ def collecting():
 
         key = cv2.waitKey(1)
         if key == ord(" "):
-            save_to_img(gestureCollected, clean_frame) # zapisz zdjęcie dłoni
+            save_to_img(gestureCollected, gestureCollected ,clean_frame) # zapisz zdjęcie dłoni
         elif key == ord("c"):
             generate_csv(hands)
         elif key == ord("p"):
