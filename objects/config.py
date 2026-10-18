@@ -23,7 +23,8 @@ BATCH = 16  #jak zabraknie pamieci to zmniejszyc do 8
 IMGSZ = 640  #(jak monety slabo wyjda to sprobowac 960)
 SEED = 0  #ten sam seed wszedzie -> przy powtorzeniu wychodza te same wyniki
 
-CONFIDENCE = 0.5
+CONFIDENCE = 0.44
+NMS_IOU = 0.60
 HISTORY_SIZE = 10  #z ilu ostatnich klatek bierzemy najczestszy odczyt kwoty
 
 #nazwa klasy z Roboflow -> ile to zlotych
@@ -46,7 +47,23 @@ CLASS_VALUES = {
     "2zl": 2.0,
     "5zl": 5.0,
 }
-
+BOX_COLORS = {
+    "10zl": (0, 255, 0),
+    "20zl": (255, 0, 0),
+    "50zl": (0, 255, 255),
+    "100zl": (0, 0, 255),
+    "200zl": (0, 165, 255),
+    "500zl": (255, 0, 255),
+    "1gr": (255, 255, 0),
+    "2gr": (255, 128, 0),
+    "5gr": (128, 255, 0),
+    "10gr": (255, 0, 128),
+    "20gr": (128, 0, 255),
+    "50gr": (0, 128, 255),
+    "1zl": (128, 255, 255),
+    "2zl": (255, 128, 255),
+    "5zl": (128, 128, 255),
+}
 
 def model_path(model_name):
     #gdzie lezy wytrenowany model, np. models/pieniadze_yolo11n.pt

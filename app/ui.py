@@ -9,7 +9,7 @@ class UI:
         self.window_name = window_name
         self.shift_was_pressed = False
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.window_name, 1200, 800)
+        cv2.resizeWindow(self.window_name, 1400, 900)
 
     def draw(self, img, zones, counter, operation, model_name=None):
         self.draw_zones(img, zones)
