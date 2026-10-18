@@ -9,9 +9,10 @@ from objects.config import (
     CONFIDENCE,
     HISTORY_SIZE,
     IMGSZ,
+    NMS_IOU,
     YOLO_MODELS,
     best_device,
-    model_path,
+    model_path, BOX_COLORS,
 )
 
 
@@ -51,7 +52,14 @@ class ObjectDetector:
         print(f"model YOLO: {self.model_name}")
 
     def detection(self, img, zones):
-        result = self.model.predict(img, imgsz=IMGSZ, conf=CONFIDENCE, device=self.device, verbose=False)[0]
+        result = self.model.predict(
+            img,
+            imgsz=IMGSZ,
+            conf=CONFIDENCE,
+            iou=NMS_IOU,
+            device=self.device,
+            verbose=False,
+        )[0]
 
         detected_objects = []
         for box in result.boxes:
@@ -98,6 +106,7 @@ class ObjectDetector:
     def draw(self, img, detected_objects):
         for obj in detected_objects:
             x1, y1, x2, y2 = obj["box"]
-            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 2)
+            color = BOX_COLORS.get(obj["label"], (255, 255, 255))
+            cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
             cv2.putText(img, f"{obj['label']} {obj['conf']:.2f}", (x1, max(y1 - 8, 15)),
-                        cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 0, 255), 2)
+                        cv2.FONT_HERSHEY_DUPLEX, 0.6, color, 2)
