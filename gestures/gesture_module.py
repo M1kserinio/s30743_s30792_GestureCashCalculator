@@ -1,6 +1,8 @@
 import numpy as np
 import mediapipe as mp
 import cv2, os, pickle
+import warnings
+warnings.filterwarnings("ignore", message="SymbolDatabase.GetPrototype")
 
 MIDDLE_MCP = 9
 
