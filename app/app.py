@@ -6,8 +6,9 @@ import cv2
 from app.cash_counter import CashCounter
 from app.ui import UI
 from gestures.gesture_module import Gesture
-from objects.config import BEST_MODEL
-from objects.object_detector import ObjectDetector
+from objects.classifiers.config import CNN_MODEL, RESNET_MODEL
+from objects.config import BEST_MODEL, CLASS_VALUES
+from objects.yolo.detector import ObjectDetector
 
 
 class Camera:
@@ -90,12 +91,18 @@ class App:
             "R_OK": "ALL",
         }
 
+        self.recognizer_options = ("YOLO", "CNN", "ResNet-18")
+        self.recognizer_paths = {"CNN": CNN_MODEL, "ResNet-18": RESNET_MODEL}
+        self.recognizer_index = 0
+        self.recognizer_name = "YOLO"
+        self.classifier = None
+
         self.commands = { #lewa to operacja na banknotach lub apce
             "L_OK": self.counter.save_group,
             "L_POINT": self.counter.calculate_add,
             "L_TWO": self.counter.calculate_subtract,
             "L_FIST": self.toggle_commands_help,
-            "L_THUMB": self.next_yolo_model,
+            "L_THUMB": self.next_recognizer,
             "L_SPREAD": self.next_mode,
             "L_TIGHT": self.next_ui_system,
         }
@@ -108,9 +115,45 @@ class App:
         self.ui.show_help = not self.ui.show_help
 
     def next_yolo_model(self):
-        """Do L_THUMB zmiana YOLO"""
+        """Klawisz y: kolejny wariant YOLO, bez zmiany jego kodu."""
         if self.object_system:
             self.object_system.next_model()
+
+    def next_recognizer(self):
+        """L_THUMB: kto nadaje nominał ramkom znalezionym przez YOLO."""
+        self.recognizer_index = (self.recognizer_index + 1) % len(self.recognizer_options)
+        self.recognizer_name = self.recognizer_options[self.recognizer_index]
+        path = self.recognizer_paths.get(self.recognizer_name)
+        if path is None or not path.exists():
+            self.classifier = None
+            if path is not None:
+                print(f"Brak wag {self.recognizer_name}: {path}")
+            else:
+                print("Nominał z YOLO")
+            return
+
+        from objects.classifiers.config import classification_device
+        from objects.classifiers.predict import BanknoteClassifier
+
+        self.classifier = BanknoteClassifier(path, classification_device())
+        print(f"Nominał rozpoznaje: {self.recognizer_name}")
+
+    def label_with_recognizer(self, frame, objects):
+        if self.classifier is None:
+            return objects
+        height, width = frame.shape[:2]
+        labeled = []
+        for obj in objects:
+            x1, y1, x2, y2 = obj["box"]
+            crop = frame[max(0, y1):min(height, y2), max(0, x1):min(width, x2)]
+            item = dict(obj)
+            if crop.size:
+                label, confidence = self.classifier.predict(crop)
+                item["label"] = label
+                item["conf"] = confidence
+                item["value"] = CLASS_VALUES.get(label, 0.0)
+            labeled.append(item)
+        return labeled
 
     def next_ui_system(self):
         """Do L_TIGHT zmiana stylu UI"""
@@ -210,7 +253,7 @@ class App:
                 (o["box"][1] + o["box"][3]) / 2 #albo drugiego, x oraz y podzielic na 2 to srodek
             )]
 
-        self.counter.set_objects(objects)
+        self.counter.set_objects(self.label_with_recognizer(frame, objects))
         return objects
 
     def run(self):
@@ -230,7 +273,12 @@ class App:
                 visible_objects = self.counter.get_visible_objects()
                 self.object_system.draw(img, visible_objects)
 
-            model_name = self.object_system.model_name if self.object_system else None
+            model_name = None
+            if self.object_system:
+                model_name = self.object_system.model_name
+                if self.recognizer_name != "YOLO":
+                    suffix = "" if self.classifier else " (brak wag)"
+                    model_name = f"{model_name} | {self.recognizer_name}{suffix}"
             self.ui.draw(img, self.ui_system, self.counter, operations, self.mode, model_name)
 
             self.ui.show(img)
@@ -240,6 +288,10 @@ class App:
                 break
             elif key == ord("\t"):
                 self.next_mode()
+            elif key == ord("y"):
+                self.next_yolo_model()
+            elif key == ord("n"):
+                self.next_recognizer()
 
         self.camera.stop()
         self.cap.release()

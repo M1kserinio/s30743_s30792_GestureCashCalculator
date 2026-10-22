@@ -4,7 +4,7 @@ import cv2
 from ultralytics import YOLO
 
 from objects.config import BEST_MODEL, DATA_YAML, DATASET_DIR, IMGSZ, RUNS_DIR, YOLO_MODELS, best_device, model_path
-from objects.fps_meter import FpsMeter
+from objects.yolo.fps_meter import FpsMeter
 from objects.results_writer import ResultsWriter
 
 
@@ -19,7 +19,7 @@ class YoloEvaluator:
     def evaluate_all(self):
         model_names = [name for name in YOLO_MODELS if model_path(name).exists()]
         if not model_names:
-            print("Brak modeli w models/ - najpierw uruchom python -m scripts.train_yolo")
+            print("Brak modeli w models/ - najpierw uruchom python -m scripts.yolo.train")
             return
 
         fps_meter = FpsMeter(self.load_test_images())

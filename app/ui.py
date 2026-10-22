@@ -40,7 +40,7 @@ class UI:
 
         self.draw_panel(img, 10, top_h + 5, w - 10, h - 10)
         ops_str = ", ".join(operations) if operations else "Brak"
-        cv2.putText(img, f"UI 1 | Gest: {mode} | YOLO: {model} | Wykryto: {ops_str}",
+        cv2.putText(img, f"UI 1 | Gest: {mode} | Model: {model} | Wykryto: {ops_str}",
                     (20, top_h + 28), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (180, 180, 180), 1)
 
         saved = counter.saved_group or "Brak"
@@ -52,7 +52,7 @@ class UI:
         self.draw_panel(img, 10, 8, w - 10, 42)
         ops_str = f"[{', '.join(operations)}]" if operations else "[-]"
         saved = counter.saved_group or "Brak"
-        text = f"UI 2 | Gest: {mode} {ops_str} | YOLO: {model} | Zapis: {saved} zl | Suma: {counter.total_value():.2f} zl | {counter.last_operation_msg}"
+        text = f"UI 2 | Gest: {mode} {ops_str} | Model: {model} | Zapis: {saved} zl | Suma: {counter.total_value():.2f} zl | {counter.last_operation_msg}"
         cv2.putText(img, text, (20, 29), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 255, 200), 1)
 
         box_w, box_h = int(w * 0.24), int(h * 0.32)
@@ -75,7 +75,7 @@ class UI:
         self.draw_panel(img, 10, 8, w - 10, 42)
         ops_str = f"[{', '.join(operations)}]" if operations else "[-]"
         saved = counter.saved_group or "Brak"
-        text = f"UI 3 | Gest: {mode} {ops_str} | YOLO: {model} | ZAPIS: {saved} zl | SUMA: {counter.total_value():.2f} zl | {counter.last_operation_msg}"
+        text = f"UI 3 | Gest: {mode} {ops_str} | Model: {model} | ZAPIS: {saved} zl | SUMA: {counter.total_value():.2f} zl | {counter.last_operation_msg}"
         cv2.putText(img, text, (20, 29), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 255, 200), 1)
 
     # Komendy
@@ -102,7 +102,7 @@ class UI:
             ("L_POINT", "Dodaj/Licz"),
             ("L_TWO", "Odejmij/Bez"),
             ("L_FIST", "Menu pomoc"),
-            ("L_THUMB", "YOLO model"),
+            ("L_THUMB", "YOLO/CNN/ResNet"),
             ("L_SPREAD", "Tryb A/B/C"),
             ("L_TIGHT", "Zmien UI"),
         ]
