@@ -9,7 +9,6 @@ from objects.resnet.model import make_resnet18
 
 
 class BanknoteClassifier:
-    """Wspolny interfejs predykcji dla HOG, prostej CNN i ResNet-18."""
 
     def __init__(self, model_path, device="cpu"):
         self.model_path = model_path

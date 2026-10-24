@@ -9,7 +9,6 @@ from objects.config import DATA_YAML, DATASET_DIR
 
 
 class ClassificationDataset:
-    """Wycinanie banknotow z ramek YOLO do osobnego zbioru klasyfikacyjnego."""
 
     def prepare(self):
         if not DATA_YAML.exists():

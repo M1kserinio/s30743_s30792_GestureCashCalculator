@@ -2,7 +2,6 @@ import cv2
 
 
 def hog_features(bgr_image, image_size=128):
-    """Cechy HOG z wycinka banknotu. To jest podejście sprzed sieci splotowych."""
     gray = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2GRAY)
     gray = cv2.resize(gray, (image_size, image_size), interpolation=cv2.INTER_AREA)
     hog = cv2.HOGDescriptor(

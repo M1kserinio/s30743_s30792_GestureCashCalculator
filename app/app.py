@@ -5,7 +5,6 @@ import cv2
 
 from app.cash_counter import CashCounter
 from app.ui import UI
-from gestures.gesture_module import Gesture
 from objects.classifiers.config import CNN_MODEL, RESNET_MODEL
 from objects.config import BEST_MODEL, CLASS_VALUES
 from objects.yolo.detector import ObjectDetector
@@ -68,7 +67,7 @@ class App:
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
         self.camera = Camera(self.cap)
-        self.gesture_system = Gesture()
+#        self.gesture_system = Gesture()
         self.object_system = ObjectDetector() if BEST_MODEL.exists() else None
         self.counter = CashCounter()
         self.ui = UI()
@@ -107,7 +106,6 @@ class App:
             "L_TIGHT": self.next_ui_system,
         }
 
-        self.hands_worker = Detection(self.detect_hands) #workery do mediapipe i yolo
         self.objects_worker = Detection(self.detect_objects) if self.object_system else None
 
     def toggle_commands_help(self):
@@ -262,12 +260,10 @@ class App:
             if not ok:
                 break
 
-            self.hands_worker.submit(img.copy()) #wysyła klatkę do detekcji dłoni w osobnym wątku
             if self.object_system:
                 self.objects_worker.submit(img.copy()) #wysyła klatkę do detekcji banknotów w osobnym wątku
 
-            operations = self.hands_worker.result or [] #operacje z detekcji dłoni
-            self.update_gestures(operations) #wykonuje komendy na podstawie operacji
+            operations = []
 
             if self.object_system:
                 visible_objects = self.counter.get_visible_objects()
