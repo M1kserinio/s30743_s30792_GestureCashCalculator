@@ -102,7 +102,7 @@ class UI:
             ("L_POINT", "Dodaj/Licz"),
             ("L_TWO", "Odejmij/Bez"),
             ("L_FIST", "Menu pomoc"),
-            ("L_THUMB", "YOLO/CNN/ResNet"),
+            ("L_THUMB", "Klasyfikator"),
             ("L_SPREAD", "Tryb A/B/C"),
             ("L_TIGHT", "Zmien UI"),
         ]

@@ -4,27 +4,32 @@ import cv2
 import numpy as np
 
 from objects.cnn.model import SimpleCNN
-from objects.hog.features import hog_features
+from objects.mobilenet.model import make_mobilenet
 from objects.resnet.model import make_resnet18
 
 
 class BanknoteClassifier:
-    """Wspolny interfejs predykcji dla HOG, prostej CNN i ResNet-18."""
+    """Wspolny interfejs predykcji dla HOG, kolorow, prostej CNN, MobileNet i ResNet-18."""
 
     def __init__(self, model_path, device="cpu"):
         self.model_path = model_path
         self.device = device
         self.kind = model_path.suffix.lower()
         self.model = None
+        self.features = None
         self.class_names = []
         self.image_size = None
         self._load()
 
     def _load(self):
         if self.kind == ".pkl":
+            from objects.classifiers.svm import FEATURES
+
             with open(self.model_path, "rb") as f:
                 saved = pickle.load(f)
             self.model = saved["model"]
+            #stare pliki HOG nie mialy tego pola
+            self.features = FEATURES[saved.get("features", "hog")]
             self.class_names = saved["class_names"]
             self.image_size = saved["image_size"]
             return
@@ -38,6 +43,8 @@ class BanknoteClassifier:
             self.model = SimpleCNN(len(self.class_names))
         elif checkpoint["model_type"] == "resnet18":
             self.model = make_resnet18(len(self.class_names), pretrained=False)
+        elif checkpoint["model_type"] == "mobilenet_v3_small":
+            self.model = make_mobilenet(len(self.class_names), pretrained=False)
         else:
             raise ValueError(f"Nieznany typ modelu: {checkpoint['model_type']}")
         self.model.load_state_dict(checkpoint["state_dict"])
@@ -45,10 +52,11 @@ class BanknoteClassifier:
 
     def predict(self, bgr_image):
         if self.kind == ".pkl":
-            features = hog_features(bgr_image, self.image_size).reshape(1, -1)
-            class_id = int(self.model.predict(features)[0])
-            confidence = float(np.max(self.model.predict_proba(features)))
-            return self.class_names[class_id], confidence
+            features = self.features(bgr_image, self.image_size).reshape(1, -1)
+            probabilities = self.model.predict_proba(features)[0]
+            #klasa z predict_proba, nie z predict: przy SVM te dwie potrafia sie roznic
+            class_id = int(np.argmax(probabilities))
+            return self.class_names[class_id], float(probabilities[class_id])
 
         import torch
 
@@ -57,6 +65,11 @@ class BanknoteClassifier:
             probabilities = torch.softmax(self.model(tensor), dim=1)[0]
         class_id = int(probabilities.argmax().item())
         return self.class_names[class_id], float(probabilities[class_id].item())
+
+    def parameter_count(self):
+        if self.kind == ".pkl":
+            return None
+        return sum(p.numel() for p in self.model.parameters())
 
     @staticmethod
     def image_tensor(bgr_image, image_size):

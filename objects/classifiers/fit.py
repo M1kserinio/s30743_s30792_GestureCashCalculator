@@ -73,6 +73,37 @@ def fit_epochs(model, optimizer, train_loader, val_loader, epochs, path,
     return best_accuracy
 
 
+def fine_tune(make_model, head_name, epochs, path, model_type, image_size, device):
+    """Siec z wagami ImageNet (ResNet, MobileNet). Najpierw uczy sie sama nowa glowa, potem cala siec."""
+    train_loader, val_loader, class_names = loaders(image_size)
+    model = make_model(len(class_names)).to(device)
+    head = getattr(model, head_name)
+
+    #1/3 epok: reszta sieci zamrozona, zostaje wiedza z ImageNet
+    frozen_epochs = max(1, epochs // 3)
+    for parameter in model.parameters():
+        parameter.requires_grad = False
+    for parameter in head.parameters():
+        parameter.requires_grad = True
+    optimizer = torch.optim.Adam(head.parameters(), lr=0.001)
+    start = time.perf_counter()
+    best_accuracy = fit_epochs(
+        model, optimizer, train_loader, val_loader, frozen_epochs, path,
+        model_type, class_names, image_size, device,
+        training_start=start,
+    )
+
+    #reszta epok: cala siec, krok 10x mniejszy, zeby nie rozjechac wag z ImageNet
+    for parameter in model.parameters():
+        parameter.requires_grad = True
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    fit_epochs(
+        model, optimizer, train_loader, val_loader, epochs - frozen_epochs, path,
+        model_type, class_names, image_size, device,
+        training_start=start, best_accuracy=best_accuracy, first_epoch=frozen_epochs,
+    )
+
+
 def _accuracy(model, loader, device):
     model.eval()
     correct = 0
