@@ -69,7 +69,7 @@ class App:
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
         self.camera = Camera(self.cap)
-        self.gesture_system = Gesture()
+#        self.gesture_system = Gesture()
         self.object_system = ObjectDetector() if BEST_MODEL.exists() else None
         self.counter = CashCounter()
         self.ui = UI()

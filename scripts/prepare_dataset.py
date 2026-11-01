@@ -1,4 +1,4 @@
-"""Prepare a YOLO dataset from a Roboflow export."""
+#Prepare a YOLO dataset from a Roboflow export
 
 import sys
 

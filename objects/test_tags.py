@@ -4,10 +4,9 @@ from objects.config import TEST_TAGS_FILE
 
 
 def read_test_tags():
-    """Reczny opis zdjec testowych z splits/warunki_test.csv, np. wzor = stary / nowy.
+    #Reczny opis zdjec testowych z splits/warunki_test.csv, np. wzor = stary / nowy.
+    #Kazda kolumna poza "image" to jeden warunek. Puste pola sa pomijane, wiec mozna opisac tylko czesc zdjec.
 
-    Kazda kolumna poza "image" to jeden warunek. Puste pola sa pomijane, wiec mozna opisac tylko czesc zdjec.
-    """
     if not TEST_TAGS_FILE.exists():
         return {}
     with open(TEST_TAGS_FILE, newline="") as f:

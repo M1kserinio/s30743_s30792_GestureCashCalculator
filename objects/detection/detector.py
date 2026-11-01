@@ -40,7 +40,7 @@ class ObjectDetector:
         self.model_name = f"{best_name} (best)"
 
     def next_model(self):
-        """Przełącza na kolejny wytrenowany detektor z folderu (YOLO albo RT-DETR)."""
+        #Przełącza na kolejny wytrenowany detektor z folderu (YOLO albo RT-DETR)
         if not self.model_options:
             return
         self.current_model_index = (self.current_model_index + 1) % len(self.model_options)
@@ -49,7 +49,7 @@ class ObjectDetector:
         print(f"Przelaczono detektor na: {self.model_name}")
 
     def detection(self, img, money_zone=None):
-        """Wykrywa banknoty. Jeśli podano money_zone (x1, y1, x2, y2), odrzuca te poza strefą."""
+        #Wykrywa banknoty. Jeśli podano money_zone (x1, y1, x2, y2), odrzuca te poza strefą
         result = self.model.predict(
             img,
             imgsz=IMGSZ,
@@ -81,7 +81,6 @@ class ObjectDetector:
         return detected_objects
 
     def draw(self, img, detected_objects):
-        """Rysuje ramki i napisy tylko dla przekazanych (przefiltrowanych) obiektów."""
         for obj in detected_objects:
             x1, y1, x2, y2 = obj["box"]
             color = BOX_COLORS.get(obj["label"], (255, 255, 255))

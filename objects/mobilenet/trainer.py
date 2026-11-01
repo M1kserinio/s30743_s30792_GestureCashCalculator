@@ -4,14 +4,13 @@ from objects.classifiers.config import (
     MOBILENET_MODEL,
     classification_device,
 )
-from objects.classifiers.fit import check_dataset, fine_tune, seed_everything
+from objects.classifiers.fit import fine_tune, seed_everything
 from objects.config import MODELS_DIR
 from objects.mobilenet.model import make_mobilenet
 
 
 class MobileNetTrainer:
     def train(self, epochs=MOBILENET_EPOCHS):
-        check_dataset()
         seed_everything()
         MODELS_DIR.mkdir(exist_ok=True)
         print("\n=== MobileNetV3-Small ===")

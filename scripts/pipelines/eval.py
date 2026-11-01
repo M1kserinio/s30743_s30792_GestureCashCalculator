@@ -1,4 +1,4 @@
-"""Porownanie potokow: sam detektor kontra lokalizator + klasyfikator, na tych samych zdjeciach."""
+#Porownanie potokow: sam detektor kontra lokalizator + klasyfikator, na tych samych zdjeciach
 
 from objects.pipelines.evaluator import PipelineEvaluator
 

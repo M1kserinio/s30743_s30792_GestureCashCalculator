@@ -1,8 +1,7 @@
-"""Trening klasyfikatorow na wycinkach banknotow (z klasa "brak").
+#Trening klasyfikatorow na wycinkach banknotow (z klasa "brak")
 
-python -m scripts.classifiers.train              wszystkie piec
-python -m scripts.classifiers.train resnet cnn   tylko wybrane
-"""
+#python -m scripts.classifiers.train              wszystkie piec
+#python -m scripts.classifiers.train resnet cnn   tylko wybrane
 
 import sys
 

@@ -2,11 +2,10 @@ import torch.nn as nn
 
 
 def make_mobilenet(class_count, pretrained):
-    """MobileNetV3-Small z ostatnia warstwa podmieniona na liczbe klas.
+    #MobileNetV3-Small z ostatnia warstwa podmieniona na liczbe klas.
+    #Lekka siec do telefonow: zamiast zwyklych splotow ma sploty rozdzielne (osobno w kazdym kanale,
+    #potem 1x1 miedzy kanalami), wiec liczy kilka razy mniej niz ResNet-18.
 
-    Lekka siec do telefonow: zamiast zwyklych splotow ma sploty rozdzielne (osobno w kazdym kanale,
-    potem 1x1 miedzy kanalami), wiec liczy kilka razy mniej niz ResNet-18.
-    """
     from torchvision.models import MobileNet_V3_Small_Weights, mobilenet_v3_small
 
     weights = MobileNet_V3_Small_Weights.DEFAULT if pretrained else None

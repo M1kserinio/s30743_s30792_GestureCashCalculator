@@ -10,11 +10,9 @@ SAME_BACKGROUND_DIFF = 10   #srednia roznica pikseli (0-255): to samo tlo daje ~
 
 
 class SessionGroups:
-    """Laczy w grupy zdjecia z jednej sesji: to samo miejsce i ta sama chwila, czesto sasiednie klatki nagrania.
-
-    Z nazw plikow Roboflow tego nie widac. Pod jednym numerem (np. 24_jpg) sa zdjecia roznych nominalow,
-    a kolejne numery to zupelnie inne sceny. Dlatego porownujemy same obrazy.
-    """
+    #Laczy w grupy zdjecia z jednej sesji: to samo miejsce i ta sama chwila, czesto sasiednie klatki nagrania.
+    #Z nazw plikow Roboflow tego nie widac. Pod jednym numerem (np. 24_jpg) sa zdjecia roznych nominalow,
+    #a kolejne numery to zupelnie inne sceny. Dlatego porownujemy same obrazy.
 
     def __init__(self, images, collage_boxes):
         self.images = images

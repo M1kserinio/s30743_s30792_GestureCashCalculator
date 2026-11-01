@@ -86,7 +86,7 @@ class ClassificationEvaluator:
         return row
 
     def _false_alarm_rate(self, true_labels, predictions):
-        #wycinek tla, ktory model nazwal banknotem = falszywy alarm
+        #wycinek tla, ktory model nazwal banknotem = fake alarm
         background = [p for t, p in zip(true_labels, predictions) if t == BACKGROUND_CLASS]
         if not background:
             return ""
@@ -102,7 +102,6 @@ class ClassificationEvaluator:
         for device in benchmark_devices():
             name = device_name(device)
             if path.suffix == ".pkl" and name != "cpu":
-                #SVM ze sklearn liczy tylko na CPU
                 row[f"ms_{name}"] = ""
                 row[f"fps_{name}"] = ""
                 continue

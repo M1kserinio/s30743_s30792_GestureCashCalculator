@@ -8,7 +8,7 @@ from objects.config import (BATCH, DATA_YAML, EPOCHS, IMGSZ, LOCATOR_BASE, LOCAT
 
 
 class DetectorTrainer:
-    """Wspolny trening YOLO i RT-DETR: ten sam zbior, te same epoki, ten sam seed."""
+    #Wspolny trening YOLO i RT-DETR: ten sam zbior, te same epoki, ten sam seed
 
     def __init__(self):
         self.device = best_device()

@@ -5,7 +5,7 @@ from objects.labels import crop_with_margin
 
 
 class DetectorPipeline:
-    """Sam detektor: ramka i nominal w jednym przejsciu sieci."""
+    #Sam detektor: ramka i nominal w jednym przejsciu sieci
 
     def __init__(self, weights, device):
         self.model = load_detector(weights)
@@ -17,10 +17,8 @@ class DetectorPipeline:
 
 
 class TwoStagePipeline:
-    """Najpierw "gdzie jest jakis banknot" (lokalizator), potem "jaki to nominal" (klasyfikator na wycinku).
-
-    Klasyfikator zna tez klase "brak", wiec moze odrzucic ramke postawiona na rece albo na scianie.
-    """
+    #Najpierw "gdzie jest jakis banknot" (lokalizator), potem "jaki to nominal" (klasyfikator na wycinku),
+    #Klasyfikator zna tez klase "brak", wiec moze odrzucic ramke postawiona na rece albo na scianie.
 
     def __init__(self, locator_weights, classifier_path, device):
         self.locator = load_detector(locator_weights)

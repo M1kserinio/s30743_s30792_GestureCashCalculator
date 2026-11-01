@@ -6,11 +6,8 @@ from objects.config import SEED
 
 
 def bootstrap_interval(correct, groups, repeats=1000):
-    """95% przedzial dla accuracy.
-
-    Test ma ok. 100 zdjec, wiec 2-3 pomylki to juz kilka punktow procentowych roznicy.
-    Losujemy cale zdjecia, a nie pojedyncze wycinki, bo wycinki z jednego zdjecia nie sa od siebie niezalezne.
-    """
+    #95% przedzial dla accuracy ,a Test ma ok. 100 zdjec, wiec 2-3 pomylki to juz kilka punktow procentowych roznicy
+    #Losujemy cale zdjecia, a nie pojedyncze wycinki, bo wycinki z jednego zdjecia nie sa od siebie niezalezne
     hits = defaultdict(int)
     counts = defaultdict(int)
     for ok, group in zip(correct, groups):
@@ -51,11 +48,10 @@ def iou(a, b):
 
 
 def match_any_class(predictions, truths, threshold=0.5):
-    """Para (prawdziwa klasa, przewidziana klasa) dla kazdej ramki, "tlo" gdy nie ma pary.
+    #Para (prawdziwa klasa, przewidziana klasa) dla kazdej ramki, "tlo" gdy nie ma pary,
+    #Ramke dopasowujemy po samym polozeniu, a klase sprawdzamy dopiero potem.
+    #Dzieki temu widac, czy model zgubil banknot, czy znalazl go, ale pomylil nominal.
 
-    Ramke dopasowujemy po samym polozeniu, a klase sprawdzamy dopiero potem.
-    Dzieki temu widac, czy model zgubil banknot, czy znalazl go, ale pomylil nominal.
-    """
     pairs = []
     used = set()
     for prediction in sorted(predictions, key=lambda p: -p["score"]):
@@ -74,7 +70,7 @@ def match_any_class(predictions, truths, threshold=0.5):
 
 
 def mean_average_precision(all_predictions, all_truths, class_names):
-    """mAP@0.5 i mAP@0.5:0.95 policzone tak samo dla kazdego potoku (interpolacja 101 punktow jak w COCO)."""
+    #mAP@0.5 i mAP@0.5:0.95 policzone tak samo dla kazdego potoku (interpolacja 101 punktow jak w COCO)
     thresholds = np.arange(0.5, 0.96, 0.05)
     per_class = []
     for name in class_names:

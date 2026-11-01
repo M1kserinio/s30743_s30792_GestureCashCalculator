@@ -4,14 +4,13 @@ from objects.classifiers.config import (
     RESNET_MODEL,
     classification_device,
 )
-from objects.classifiers.fit import check_dataset, fine_tune, seed_everything
+from objects.classifiers.fit import fine_tune, seed_everything
 from objects.config import MODELS_DIR
 from objects.resnet.model import make_resnet18
 
 
 class ResNetTrainer:
     def train(self, epochs=RESNET_EPOCHS):
-        check_dataset()
         seed_everything()
         MODELS_DIR.mkdir(exist_ok=True)
         print("\n=== ResNet-18 ===")

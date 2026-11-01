@@ -15,10 +15,10 @@ from objects.results_writer import ResultsWriter
 
 
 class DetectorEvaluator:
-    """Tabela detektorow (YOLO, RT-DETR): mAP, precision, recall, F1, macierz pomylek, falszywe alarmy i FPS."""
+    #Tabela detektorow (YOLO, RT-DETR): mAP, precision, recall, F1, macierz pomylek, FPS
 
     def __init__(self):
-        #FPS zawsze na CPU (dziala na kazdym komputerze) + na GPU jak jest
+        #FPS zawsze na CPU + na GPU jak jest
         self.devices = benchmark_devices()
         self.writer = ResultsWriter()
 

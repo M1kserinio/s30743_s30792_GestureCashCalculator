@@ -19,12 +19,10 @@ MIN_CONF = 0.05
 
 
 class PipelineEvaluator:
-    """Detektor kontra "znajdz banknot + klasyfikator" na tych samych pelnych zdjeciach testowych.
-
-    Wszystkie potoki sa liczone tym samym kodem (objects/metrics.py), wiec liczby stoja w jednej tabeli.
-    Detektor tez tu jest, ale jego mAP z ultralytics (tabela detektorow) moze sie roznic o pare setnych,
-    bo ultralytics bierze ramki od pewnosci 0.001, a tu od 0.05.
-    """
+    #Detektor kontra "znajdz banknot + klasyfikator" na tych samych pelnych zdjeciach testowych.
+    #Wszystkie potoki sa liczone tym samym kodem (objects/metrics.py), wiec liczby stoja w jednej tabeli.
+    #Detektor tez tu jest, ale jego mAP z ultralytics (tabela detektorow) moze sie roznic o pare setnych,
+    #bo ultralytics bierze ramki od pewnosci 0.001, a tu od 0.05
 
     def __init__(self):
         self.writer = ResultsWriter()

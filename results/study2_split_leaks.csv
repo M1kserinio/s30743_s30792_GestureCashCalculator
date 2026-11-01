@@ -1,5 +1,0 @@
-zbiory,zdjec_w_drugim,z_blizniakiem_w_pierwszym,w_tym_zdjecia_z_dlonia,w_tym_kolaze
-train-test (po sesjach),104,0,0,0
-train-val (po sesjach),103,0,0,0
-val-test (po sesjach),104,0,0,0
-"train-test (losowo po plikach, dla porownania)",104,25,12,13

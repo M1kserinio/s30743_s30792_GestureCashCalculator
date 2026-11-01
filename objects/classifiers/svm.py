@@ -10,7 +10,6 @@ from sklearn.svm import SVC
 from torchvision import datasets
 
 from objects.classifiers.config import CLASSIFICATION_DATASET_DIR, CNN_IMAGE_SIZE, COLOR_MODEL, HOG_MODEL
-from objects.classifiers.fit import check_dataset
 from objects.config import MODELS_DIR, SEED
 
 
@@ -46,7 +45,7 @@ FEATURES = {
 
 
 class SvmTrainer:
-    """Klasyczne metody (bez sieci): stale cechy z kazdego wycinka i SVM na nich."""
+    #Klasyczne metody (bez sieci): stale cechy z kazdego wycinka i SVM na nich
 
     def __init__(self, title, features, kernel, path):
         self.title = title
@@ -55,7 +54,6 @@ class SvmTrainer:
         self.path = path
 
     def train(self):
-        check_dataset()
         MODELS_DIR.mkdir(exist_ok=True)
         print(f"\n=== {self.title} ===")
         start = time.perf_counter()

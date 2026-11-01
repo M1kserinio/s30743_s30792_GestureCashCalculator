@@ -11,10 +11,8 @@ from objects.robustness.conditions import Conditions
 
 
 class RobustnessDataset:
-    """Zapisuje zbior testowy pod kazdym warunkiem do datasets/odpornosc/<warunek>/ (images + labels jak w YOLO).
-
-    Zmienione zdjecia sa na dysku, wiec kazdy model dostaje dokladnie te same i mozna je obejrzec.
-    """
+    #Zapisuje zbior testowy pod kazdym warunkiem do datasets/odpornosc/<warunek>/ (images + labels jak w YOLO).
+    #Zmienione zdjecia sa na dysku, wiec kazdy model dostaje dokladnie te same i mozna je obejrzec
 
     def prepare(self):
         test_images = sorted((DATASET_DIR / "test" / "images").glob("*"))

@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class SimpleCNN(nn.Module):
-    """Mala siec uczona od zera. Trzy bloki splotowe i warstwa na nominały."""
+    #Mala siec uczona od zera. Trzy bloki splotowe i warstwa na nominały
 
     def __init__(self, class_count):
         super().__init__()

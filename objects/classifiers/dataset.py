@@ -11,7 +11,7 @@ from objects.labels import crop_with_margin, read_labels, to_pixels
 
 
 class ClassificationDataset:
-    """Wycinanie banknotow z ramek YOLO do osobnego zbioru klasyfikacyjnego."""
+    #Wycinanie banknotow z ramek YOLO do osobnego zbioru klasyfikacyjnego.
 
     def prepare(self):
         if not DATA_YAML.exists():

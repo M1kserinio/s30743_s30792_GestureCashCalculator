@@ -10,14 +10,6 @@ from objects.classifiers.config import CLASSIFICATION_DATASET_DIR, CLASSIFIER_BA
 from objects.config import SEED
 
 
-def check_dataset():
-    required = [CLASSIFICATION_DATASET_DIR / split for split in ("train", "val", "test")]
-    if not all(path.exists() for path in required):
-        raise FileNotFoundError(
-            "Brak zbioru cropow. Uruchom python -m scripts.classifiers.prepare"
-        )
-
-
 def loaders(image_size):
     train_transform = transforms.Compose([
         transforms.Resize((image_size, image_size)),
@@ -74,7 +66,7 @@ def fit_epochs(model, optimizer, train_loader, val_loader, epochs, path,
 
 
 def fine_tune(make_model, head_name, epochs, path, model_type, image_size, device):
-    """Siec z wagami ImageNet (ResNet, MobileNet). Najpierw uczy sie sama nowa glowa, potem cala siec."""
+    #Siec z wagami ImageNet (ResNet, MobileNet). Najpierw uczy sie sama nowa glowa, potem cala siec.
     train_loader, val_loader, class_names = loaders(image_size)
     model = make_model(len(class_names)).to(device)
     head = getattr(model, head_name)

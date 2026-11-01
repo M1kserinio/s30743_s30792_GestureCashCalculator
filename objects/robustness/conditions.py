@@ -3,11 +3,9 @@ import numpy as np
 
 
 class Conditions:
-    """Sztuczne zmiany warunkow nakladane na zdjecia testowe.
-
-    Ramki sa w pikselach: (klasa, x1, y1, x2, y2). Zmiany, ktore przesuwaja banknot (obrot, perspektywa)
-    albo go czesciowo zaslaniaja, przeliczaja tez ramki, zeby ocena dalej byla uczciwa.
-    """
+    #Sztuczne zmiany warunkow nakladane na zdjecia testowe.
+    #Ramki sa w pikselach: (klasa, x1, y1, x2, y2). Zmiany, ktore przesuwaja banknot (obrot, perspektywa)
+    #albo go czesciowo zaslaniaja, przeliczaja tez ramki, zeby ocena dalej byla uczciwa
 
     def __init__(self, backgrounds):
         #zdjecia bez banknotow z testu (datasets/brak_banknotu/test) - do podmiany tla i do zaslaniania

@@ -3,14 +3,13 @@ import time
 import torch
 
 from objects.classifiers.config import CNN_EPOCHS, CNN_IMAGE_SIZE, CNN_MODEL, classification_device
-from objects.classifiers.fit import check_dataset, fit_epochs, loaders, seed_everything
+from objects.classifiers.fit import fit_epochs, loaders, seed_everything
 from objects.cnn.model import SimpleCNN
 from objects.config import MODELS_DIR
 
 
 class CnnTrainer:
     def train(self, epochs=CNN_EPOCHS):
-        check_dataset()
         seed_everything()
         MODELS_DIR.mkdir(exist_ok=True)
         device = classification_device()

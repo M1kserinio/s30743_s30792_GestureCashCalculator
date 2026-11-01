@@ -12,12 +12,10 @@ from objects.robustness.conditions import Conditions
 
 
 class RobustnessEvaluator:
-    """Te same modele na zmienionych zdjeciach testowych: tabela model x warunek i mapy ciepla.
-
-    Potoki (detektor albo lokalizator + klasyfikator) dostaja cale zdjecie.
-    Klasyfikatory osobno dostaja wycinki z prawdziwych ramek, zeby bylo widac, ile traci sam klasyfikator,
-    a ile to wina tego, ze lokalizator nie znalazl banknotu.
-    """
+    #Te same modele na zmienionych zdjeciach testowych: tabela model x warunek i mapy ciepla.
+    #Potoki (detektor albo lokalizator + klasyfikator) dostaja cale zdjecie.
+    #Klasyfikatory osobno dostaja wycinki z prawdziwych ramek, zeby bylo widac, ile traci sam klasyfikator,
+    #a ile to wina tego, ze lokalizator nie znalazl banknotu
 
     def __init__(self):
         self.pipelines = PipelineEvaluator()

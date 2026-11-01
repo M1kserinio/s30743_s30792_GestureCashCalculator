@@ -1,4 +1,4 @@
-"""Odpornosc: wszystkie potoki i klasyfikatory na kazdym folderze z datasets/odpornosc/."""
+#Odpornosc: wszystkie potoki i klasyfikatory na kazdym folderze z datasets/odpornosc/
 
 from objects.robustness.evaluator import RobustnessEvaluator
 

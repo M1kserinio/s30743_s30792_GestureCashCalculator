@@ -1,4 +1,4 @@
-"""Tworzy datasets/odpornosc/<warunek>/ - zbior testowy pod roznymi zmianami warunkow."""
+#Tworzy datasets/odpornosc/<warunek>/ - zbior testowy pod roznymi zmianami warunkow
 
 from objects.robustness.dataset import RobustnessDataset
 

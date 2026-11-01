@@ -1,12 +1,11 @@
-"""Trening detektorow na tym samym zbiorze.
+#Trening detektorow na tym samym zbiorze.
 
-python -m scripts.detectors.train               yolo, lokalizator, rtdetr - po kolei
-python -m scripts.detectors.train rtdetr        tylko wybrane (RT-DETR trwa najdluzej, mozna go puscic osobno)
+#python -m scripts.detectors.train               yolo, lokalizator, rtdetr - po kolei
+#python -m scripts.detectors.train rtdetr        tylko wybrane (RT-DETR trwa najdluzej, mozna go puscic osobno)
 
-yolo        - yolo11n, yolo11s, yolo11m
-lokalizator - yolo11s z jedna klasa "banknot", pierwszy etap potoku lokalizator + klasyfikator
-rtdetr      - rtdetr-l (transformer, bez NMS)
-"""
+#yolo        - yolo11n, yolo11s, yolo11m
+#lokalizator - yolo11s z jedna klasa "banknot", pierwszy etap potoku lokalizator + klasyfikator
+#rtdetr      - rtdetr-l (transformer, bez NMS)
 
 import sys
 

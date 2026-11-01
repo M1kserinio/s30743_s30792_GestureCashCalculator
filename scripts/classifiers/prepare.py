@@ -1,4 +1,4 @@
-"""Wytnij banknoty z ramek YOLO do zbioru dla klasyfikatorow."""
+#Wytnij banknoty z ramek YOLO do zbioru dla klasyfikatorow
 
 from objects.classifiers.dataset import ClassificationDataset
 
