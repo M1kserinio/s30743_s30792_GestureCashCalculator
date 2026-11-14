@@ -3,7 +3,7 @@ import csv
 import numpy as np
 from sklearn.model_selection import StratifiedGroupKFold
 
-from objects.config import SEED, SPLIT_FILE, TEST_PART, TEST_TAGS_FILE, VAL_PART
+from objects.config import SEED, SPLIT_FILE, TEST_PART, VAL_PART
 from objects.labels import read_labels
 from objects.results_writer import ResultsWriter
 from objects.session_groups import SessionGroups
@@ -29,7 +29,6 @@ class DatasetSplitter:
         split = {name: [samples[i] for i in indices[name]] for name in SPLITS}
         self.save(split, samples, groups)
         ResultsWriter().save_csv("study2_split_leaks.csv", sessions.leak_rows(indices))
-        self.save_tags_template(split["test"])
         return split
 
     def assign(self, strata, groups):
@@ -81,13 +80,3 @@ class DatasetSplitter:
         for image, label in samples:
             split[saved[image.name]].append((image, label))
         return split
-
-    def save_tags_template(self, test_samples):
-        #do recznego uzupelnienia: wzor banknotu (stary/nowy). Mozna dopisac kolejne kolumny, np. oswietlenie
-        if TEST_TAGS_FILE.exists():
-            return
-        with open(TEST_TAGS_FILE, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=["image", "wzor"])
-            writer.writeheader()
-            writer.writerows({"image": image.name, "wzor": ""} for image, _ in sorted(test_samples))
-        print(f"Szablon opisu testu (stary/nowy wzor): {TEST_TAGS_FILE}")

@@ -115,13 +115,8 @@ Stare polecenia:
 | `scripts.hog.train`, `scripts.cnn.train`, `scripts.resnet.train` | `scripts.classifiers.train hog` / `cnn` / `resnet` |
 | `scripts.hog.eval`, `scripts.cnn.eval`, `scripts.resnet.eval` | `scripts.classifiers.eval` |
 
-Ręcznie do uzupełnienia:
-
-- `splits/warunki_test.csv`: kolumna `wzor` (`stary` / `nowy`) dla zdjęć testowych.
-  Wolno dopisać kolejne kolumny (na przykład `oswietlenie`). Ocena klasyfikatorów
-  i potoków sama rozbije wyniki po każdej kolumnie.
 - `datasets/odpornosc/<nazwa>/images` + `labels`: własne prawdziwe zdjęcia
-  (zgięte, brudne, stary wzór) w formacie YOLO. Ocena odporności policzy je
+  (zgięte, brudne) w formacie YOLO. Ocena odporności policzy je
   jako kolejny warunek.
 
 ## Gdzie jest odpowiedź na które pytanie
@@ -133,7 +128,7 @@ Ręcznie do uzupełnienia:
 | tabela detektorów | `study2_detectors_summary.csv`, `_per_class.csv`, `_confusion.png`, `_map_vs_fps.png` |
 | potoki | `study2_pipelines_summary.csv`, `_conditions.csv`, `_confusion.png` |
 | odporność | `study2_robustness_*.csv`, `study2_robustness_*.png`, `study2_robustness_examples.png` |
-| stary / nowy wzór, z dłonią / bez | `study2_classifiers_conditions.csv`, `study2_pipelines_conditions.csv` |
+| z dłonią / bez | `study2_classifiers_conditions.csv`, `study2_pipelines_conditions.csv` |
 | na czym mierzony był czas | `study2_hardware.csv` |
 
 Krzywe uczenia detektorów są w `runs/pieniadze/<model>/results.png`,

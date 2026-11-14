@@ -17,7 +17,6 @@ RESULTS_DIR = ROOT / "results"
 
 #podzial jest zapisany w repo, zeby kazdy model (i kazdy z nas) dostal dokladnie te same zdjecia
 SPLIT_FILE = ROOT / "splits" / "pieniadze_split.csv"
-TEST_TAGS_FILE = ROOT / "splits" / "warunki_test.csv"
 
 #podzial zbioru, reszta (~70%) idzie do train
 TEST_PART = 0.15

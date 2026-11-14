@@ -12,7 +12,6 @@ from objects.classifiers.predict import BanknoteClassifier
 from objects.config import BACKGROUND_CLASS, CLASS_VALUES, benchmark_devices, device_name
 from objects.metrics import bootstrap_interval
 from objects.results_writer import ResultsWriter
-from objects.test_tags import read_test_tags
 
 WARMUP = 10  #pierwsze predykcje sa duzo wolniejsze, nie licze ich
 
@@ -30,7 +29,6 @@ class ClassificationEvaluator:
         #wszystkie wycinki od razu w pamieci, zeby czas byl czasem modelu, a nie czytania z dysku
         crops = [cv2.imread(str(CLASSIFICATION_DATASET_DIR / row["crop_path"])) for row in rows]
         true_labels = [row["class"] for row in rows]
-        tags = read_test_tags()
 
         summary = []
         per_class = []
@@ -45,7 +43,7 @@ class ClassificationEvaluator:
 
             summary.append(self._summary_row(name, path, classifier, rows, true_labels, predictions, crops))
             per_class.extend(self._per_class_rows(name, true_labels, predictions))
-            conditions.extend(self._condition_rows(name, rows, predictions, tags))
+            conditions.extend(self._condition_rows(name, rows, predictions))
             labels, matrix = self._confusion(true_labels, predictions)
             matrices[name] = (labels, matrix)
             confusion.extend(
@@ -132,13 +130,10 @@ class ClassificationEvaluator:
             for i, label in enumerate(labels)
         ]
 
-    def _condition_rows(self, model_name, rows, predictions, tags):
+    def _condition_rows(self, model_name, rows, predictions):
         output = []
         fields = {"object_count": [row["object_count"] for row in rows],
                   "source": [row["source"] for row in rows]}
-        #reczne opisy (np. wzor stary/nowy) z splits/warunki_test.csv
-        for field in sorted({field for row in rows for field in tags.get(row["image_name"], {})}):
-            fields[field] = [tags.get(row["image_name"], {}).get(field) for row in rows]
 
         for field, values in fields.items():
             for value in sorted({v for v in values if v is not None}):

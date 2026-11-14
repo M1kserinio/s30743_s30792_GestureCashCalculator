@@ -11,7 +11,6 @@ from objects.labels import load_labeled_folder
 from objects.metrics import bootstrap_interval, false_alarm_stats, match_any_class, mean_average_precision
 from objects.pipelines.pipelines import DetectorPipeline, TwoStagePipeline
 from objects.results_writer import ResultsWriter
-from objects.test_tags import read_test_tags
 
 #do mAP potrzebna jest cala lista ramek, takze slabych. Ponizej 0.05 ramki prawie nic juz nie zmieniaja,
 #a potok 2-etapowy musialby klasyfikowac setki smieciowych wycinkow
@@ -33,7 +32,6 @@ class PipelineEvaluator:
         names, images, truths = self.load_split(DATASET_DIR / "test")
         negatives = [cv2.imread(str(path)) for path in sorted((NEGATIVES_DIR / "test").glob("*.jpg"))]
         fps_meter = FpsMeter(images[:50])
-        tags = read_test_tags()
 
         summary = []
         conditions = []
@@ -49,7 +47,7 @@ class PipelineEvaluator:
             row.update(self.timing(pipeline, build, fps_meter))
             summary.append(row)
 
-            conditions += self.condition_rows(title, names, predictions, truths, tags)
+            conditions += self.condition_rows(title, names, predictions, truths)
             labels, matrix = self.confusion(pairs)
             matrices[title] = (labels, matrix)
             confusion += [{"pipeline": title, "actual": actual, "predicted": predicted, "count": matrix[i][j]}
@@ -139,13 +137,11 @@ class PipelineEvaluator:
             row[f"fps_{device_name(device)}"] = round(fps, 1)
         return row
 
-    def condition_rows(self, title, names, predictions, truths, tags):
+    def condition_rows(self, title, names, predictions, truths):
         fields = {
             "source": ["bez_dloni_mix" if name.startswith("mix_banknotow") else "z_dlonia" for name in names],
             "object_count": [len(real) for real in truths],
         }
-        for field in sorted({field for name in names for field in tags.get(name, {})}):
-            fields[field] = [tags.get(name, {}).get(field) for name in names]
 
         rows = []
         for field, values in fields.items():
