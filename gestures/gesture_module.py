@@ -1,6 +1,8 @@
 import numpy as np
 import mediapipe as mp
 import cv2, os, pickle
+from gestures.train_cnn import prepare_image, SIDE_NAMES
+import json, tensorflow as tf
 
 MIDDLE_MCP = 9
 
@@ -10,7 +12,8 @@ PROG_OK = 0.35
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 B_MODEL_PATH = os.path.join(ROOT, "gest_results", "B_MLP_model.pkl")
-C_MODEL_PATH = os.path.join(ROOT, "gest_results", "C_SVC_model.pkl")
+C_MODEL_PATH = os.path.join(ROOT, "gest_results", "C_RF_model.pkl")
+D_MODEL_PATH = os.path.join(ROOT, "gest_results", "D_CNN_model.pt")
 
 class Gesture():
     def __init__(self):
@@ -24,12 +27,21 @@ class Gesture():
             self.modelB = pickle.load(f)
         with open(C_MODEL_PATH, "rb") as f:
             self.modelC = pickle.load(f)
+        self.modelD = tf.keras.models.load_model(os.path.join(ROOT, "gest_results", "D_CNN_model.keras"))
+        with open(os.path.join(ROOT, "gest_results", "D_labels.json")) as f:
+            self.labels_D = json.load(f)
 
 
     def detect_gesture(self, img, mode="B"):
 
         h, w, _ = img.shape
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        if mode == "D":
+            gesture_probs, side_prob = self.modelD(prepare_image(img)[None].astype("float32"), training=False)
+            return [{"side": SIDE_NAMES[int(float(side_prob[0, 0]) > 0.5)],
+                     "gesture": self.labels_D[int(np.argmax(gesture_probs[0]))], "landmarks": None}]
+
         handLm = self.hands.process(img_rgb)
 
         detected_hands = [] #na obie rece lista

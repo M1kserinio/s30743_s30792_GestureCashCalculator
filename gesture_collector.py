@@ -94,7 +94,7 @@ def collecting():
 
         key = cv2.waitKey(1)
         if key == ord(" "):
-            save_to_img(gestureCollected, clean_frame) # zapisz zdjęcie dłoni
+            save_to_img(personCollected, gestureCollected, clean_frame) # zapisz zdjęcie dłoni
         elif key == ord("c"):
             generate_csv(hands)
         elif key == ord("p"):

@@ -34,7 +34,7 @@ def run(name, use_features, eval="lopo"):
 
     person_names = sorted(np.unique(persons))
     labels = sorted(np.unique(y))  # bez tego czasami sie kolejnosc gestow w tabelkach zmienia, po prostu sortowanie labeli
-    groups = np.arange(len(X)) // 2  # csv maja tuz po sobie lustrzane odbicie, a to je grupuje (ten sam gest odbity to ta sama grupa)
+    groups = persons if eval=="lopo" else (np.arange(len(X)) // 2)  # csv maja tuz po sobie lustrzane odbicie, a to je grupuje (ten sam gest odbity to ta sama grupa)
 
     #tylko do ewaluacji wyniku
     if eval == "lopo":
