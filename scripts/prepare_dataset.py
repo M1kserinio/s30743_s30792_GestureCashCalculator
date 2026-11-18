@@ -1,9 +1,6 @@
-#Prepare a YOLO dataset from a Roboflow export
-
 import sys
 
 from objects.roboflow_dataset import RoboflowDataset
-
 ROBOFLOW_ZIP = "roboflow.zip"
 
 if __name__ == "__main__":

@@ -49,7 +49,7 @@ class ObjectDetector:
         print(f"Przelaczono detektor na: {self.model_name}")
 
     def detection(self, img, money_zone=None):
-        #Wykrywa banknoty. Jeśli podano money_zone (x1, y1, x2, y2), odrzuca te poza strefą
+        #Wykrywa banknoty Jeddli podano money_zone (x1, y1, x2, y2), odrzuca te poza strefą
         result = self.model.predict(
             img,
             imgsz=IMGSZ,

@@ -37,7 +37,6 @@ class ClassificationEvaluator:
         matrices = {}
         for name, path in models:
             print(f"\n=== Ewaluacja: {name} ===")
-            #wynik zawsze z CPU, czas z kazdego urzadzenia osobno
             classifier = BanknoteClassifier(path, "cpu")
             predictions = [classifier.predict(crop)[0] for crop in crops]
 

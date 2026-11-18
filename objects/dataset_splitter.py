@@ -1,4 +1,5 @@
 import csv
+import random
 
 import numpy as np
 from sklearn.model_selection import StratifiedGroupKFold
@@ -15,7 +16,9 @@ class DatasetSplitter:
     def split(self, samples):
         saved = self.load_saved(samples)
         if saved:
-            print(f"Podzial wziety z {SPLIT_FILE} (ten sam dla wszystkich modeli)")
+           # print(f"Podzial wziety z {SPLIT_FILE} (ten sam dla wszystkich modeli)")
+            groups, indices = self.saved_groups_and_indices(samples)
+            self.save_leak_report(samples, groups, indices)
             return saved
 
         images = [image for image, _ in samples]
@@ -28,7 +31,7 @@ class DatasetSplitter:
         indices = self.assign(strata, groups)
         split = {name: [samples[i] for i in indices[name]] for name in SPLITS}
         self.save(split, samples, groups)
-        ResultsWriter().save_csv("study2_split_leaks.csv", sessions.leak_rows(indices))
+        self.save_leak_report(samples, groups, indices)
         return split
 
     def assign(self, strata, groups):
@@ -80,3 +83,42 @@ class DatasetSplitter:
         for image, label in samples:
             split[saved[image.name]].append((image, label))
         return split
+
+    def saved_groups_and_indices(self, samples):
+        with open(SPLIT_FILE, newline="") as f:
+            saved = {row["image"]: row for row in csv.DictReader(f)}
+        groups = np.asarray([int(saved[image.name]["group"]) for image, _ in samples])
+        indices = {
+            split: [i for i, (image, _) in enumerate(samples) if saved[image.name]["split"] == split]
+            for split in SPLITS
+        }
+        return groups, indices
+
+    def save_leak_report(self, samples, groups, split_indices):
+        rows = []
+        for first, second in [("train", "test"), ("train", "val"), ("val", "test")]:
+            rows.append(self.leak_row(
+                samples, groups, f"{first}-{second} (po sesjach)",
+                split_indices[first], split_indices[second],
+            ))
+
+        everything = list(range(len(samples)))
+        random.Random(SEED).shuffle(everything)
+        test_size = len(split_indices["test"])
+        rows.append(self.leak_row(
+            samples, groups, "train-test (losowo po plikach, dla porownania)",
+            everything[test_size:], everything[:test_size],
+        ))
+        ResultsWriter().save_csv("study2_split_leaks.csv", rows)
+
+    def leak_row(self, samples, groups, name, first, second):
+        first_groups = {groups[i] for i in first}
+        twins = np.asarray([groups[i] in first_groups for i in second])
+        collages = np.asarray([self.is_collage(samples[i][0]) for i in second])
+        return {
+            "zbiory": name,
+            "zdjec_w_drugim": len(second),
+            "z_blizniakiem_w_pierwszym": int(twins.sum()),
+            "w_tym_zdjecia_z_dlonia": int((twins & ~collages).sum()),
+            "w_tym_kolaze": int((twins & collages).sum()),
+        }

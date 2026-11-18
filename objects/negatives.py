@@ -12,9 +12,8 @@ PATCH_MAX_RATIO = 2   #dluzszy bok najwyzej 2x krotszy, inaczej to tylko cienki 
 
 
 class Negatives:
-    #Zdjecia bez banknotu: klasa "brak" dla klasyfikatorow i proba do liczenia falszywych alarmow.
-    #Osobnych zdjec bez banknotow nie mamy, wiec wycinamy je z naszych: kawalek zdjecia obok banknotow
-    #(reka, stol, sciana). Wycinek zostaje w zbiorze zdjecia, z ktorego jest, wiec nie ma przecieku miedzy train i test
+    #Zdjecia bez banknotu: klasa "brak" dla klasyfikatorow i proba do liczenia fake
+    #Rowniez z faktu ze nie bylo w zbiorze zdjec bez bankonotow, to wycinamy tla z oebcnych
 
     def prepare(self, split):
         if NEGATIVES_DIR.exists():

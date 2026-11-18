@@ -13,7 +13,7 @@ class FpsMeter:
         for i in range(self.warmup):
             run_frame(self.images[i % len(self.images)])
 
-        #po jednym obrazku, tak jak w apce (klatka po klatce)
+        #po jednym obrazku, tak jak w apce
         start = time.perf_counter()
         for i in range(self.frames):
             run_frame(self.images[i % len(self.images)])
