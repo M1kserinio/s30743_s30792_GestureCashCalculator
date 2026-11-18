@@ -3,7 +3,7 @@ ultralytics
 scikit-learn
 pandas
 matplotlib
-opencv-python<5  # w OpenCV 5 nie ma juz cv2.HOGDescriptor (HOG+SVM)
+opencv-python<5
 PyYAML
 torch
 torchvision
