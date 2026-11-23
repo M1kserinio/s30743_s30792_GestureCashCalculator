@@ -73,7 +73,7 @@ class App:
         self.ui = UI()
 
         self.ui_system = 1           # Styl 2 jako aktywny
-        self.modes = ("A", "B", "C")
+        self.modes = ("A", "B", "C", "D")
         self.mode = "A"
 
         self.HOLD_TIME = 0.6
