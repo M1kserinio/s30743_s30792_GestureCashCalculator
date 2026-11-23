@@ -6,8 +6,10 @@ import cv2
 from app.cash_counter import CashCounter
 from app.ui import UI
 from gestures.gesture_module import Gesture
-from objects.config import BEST_MODEL
-from objects.object_detector import ObjectDetector
+from objects.classifiers.config import CLASSIFIERS
+from objects.config import BACKGROUND_CLASS, BEST_MODEL, CLASS_VALUES
+from objects.detection.detector import ObjectDetector
+from objects.labels import crop_with_margin
 
 
 class Camera:
@@ -17,33 +19,33 @@ class Camera:
         self.frame = None
         self.ok = False
         self.running = True
-        self.lock = threading.Lock() #klucz lockujący na wątek
-        self.new = threading.Event() #używane do sycnhronizacji wątków, nowa klatka
-        threading.Thread(target=self._loop, daemon=True).start() #start wątku
+        self.lock = threading.Lock() #żeby nie czytać klatki w trakcie jej podmiany
+        self.new = threading.Event() #sygnał "jest nowa klatka" dla read()
+        threading.Thread(target=self._loop, daemon=True).start()
 
     def _loop(self):
         while self.running:
             ok, frame = self.cap.read()
             with self.lock:
-                self.ok, self.frame = ok, frame #zapamiętanie stanu i klatki
-            self.new.set() #nowa klatka
+                self.ok, self.frame = ok, frame
+            self.new.set()
             if not ok:
                 break
 
     def read(self):
-        self.new.wait(timeout=1) #czeka na nową klatkę przez max sekunde
-        self.new.clear() #jak dostanie to resetuje nową
+        self.new.wait(timeout=1) #czeka na nową klatkę najwyżej sekundę
+        self.new.clear()
         with self.lock:
-            return self.ok and self.frame is not None, self.frame #zwraca stan i klatkę
+            return self.ok and self.frame is not None, self.frame
 
     def stop(self):
         self.running = False
 
 
 class Detection:
-    """Wątek dla detekcji dłoni lub YOLO."""
+    """Wątek dla detekcji dłoni lub banknotów."""
     def __init__(self, det_fn):
-        self.det_fn = det_fn #funckja obecnego weykrywania
+        self.det_fn = det_fn #detect_hands albo detect_objects
         self.frame = None
         self.result = None
         self.new = threading.Event()
@@ -58,7 +60,7 @@ class Detection:
             self.new.wait() #czeka na nową klatkę bez timeoutu bo detekcja dłużej zajmuje
             self.new.clear()
             try:
-                self.result = self.det_fn(self.frame)  #wywołanie funkcji detekcji dłoni lub YOLO
+                self.result = self.det_fn(self.frame)
             except Exception:
                 traceback.print_exc()
 
@@ -67,7 +69,7 @@ class App:
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
         self.camera = Camera(self.cap)
-        self.gesture_system = Gesture()
+#        self.gesture_system = Gesture()
         self.object_system = ObjectDetector() if BEST_MODEL.exists() else None
         self.counter = CashCounter()
         self.ui = UI()
@@ -90,27 +92,69 @@ class App:
             "R_OK": "ALL",
         }
 
+        self.recognizer_paths = dict(CLASSIFIERS)
+        self.recognizer_options = ("Detektor", *self.recognizer_paths)
+        self.recognizer_index = 0
+        self.recognizer_name = "Detektor"
+        self.classifier = None
+
         self.commands = { #lewa to operacja na banknotach lub apce
             "L_OK": self.counter.save_group,
             "L_POINT": self.counter.calculate_add,
             "L_TWO": self.counter.calculate_subtract,
             "L_FIST": self.toggle_commands_help,
-            "L_THUMB": self.next_yolo_model,
+            "L_THUMB": self.next_recognizer,
             "L_SPREAD": self.next_mode,
             "L_TIGHT": self.next_ui_system,
         }
 
-        self.hands_worker = Detection(self.detect_hands) #workery do mediapipe i yolo
+        self.hands_worker = Detection(self.detect_hands) #osobne wątki: MediaPipe (dłonie) i detektor (banknoty)
         self.objects_worker = Detection(self.detect_objects) if self.object_system else None
 
     def toggle_commands_help(self):
         """Do L_FIST instrukcja"""
         self.ui.show_help = not self.ui.show_help
 
-    def next_yolo_model(self):
-        """Do L_THUMB zmiana YOLO"""
+    def next_detector(self):
+        """Klawisz y: kolejny detektor (warianty YOLO i RT-DETR)."""
         if self.object_system:
             self.object_system.next_model()
+
+    def next_recognizer(self):
+        """L_THUMB: kto nadaje nominał ramkom znalezionym przez detektor."""
+        self.recognizer_index = (self.recognizer_index + 1) % len(self.recognizer_options)
+        self.recognizer_name = self.recognizer_options[self.recognizer_index]
+        path = self.recognizer_paths.get(self.recognizer_name)
+        if path is None or not path.exists():
+            self.classifier = None
+            if path is not None:
+                print(f"Brak wag {self.recognizer_name}: {path}")
+            else:
+                print("Nominał z detektora")
+            return
+
+        from objects.classifiers.config import classification_device
+        from objects.classifiers.predict import BanknoteClassifier
+
+        self.classifier = BanknoteClassifier(path, classification_device())
+        print(f"Nominał rozpoznaje: {self.recognizer_name}")
+
+    def label_with_recognizer(self, frame, objects):
+        if self.classifier is None:
+            return objects
+        labeled = []
+        for obj in objects:
+            crop = crop_with_margin(frame, *obj["box"]) #wycinek z marginesem, tak jak przy uczeniu klasyfikatora
+            item = dict(obj)
+            if crop.size:
+                label, confidence = self.classifier.predict(crop)
+                if label == BACKGROUND_CLASS: #klasyfikator mowi, ze w ramce nie ma banknotu, wiec jej nie liczymy
+                    continue
+                item["label"] = label
+                item["conf"] = confidence
+                item["value"] = CLASS_VALUES.get(label, 0.0)
+            labeled.append(item)
+        return labeled
 
     def next_ui_system(self):
         """Do L_TIGHT zmiana stylu UI"""
@@ -122,7 +166,7 @@ class App:
         self.mode = self.modes[(idx + 1) % len(self.modes)]
 
     def to_operation(self, hand):
-        """Tworze operacje, czyli zalezy ktora łapa i potem dodaje gest"""
+        """Operacja = ręka (R/L) + gest, np. L_POINT."""
         gesture = hand["gesture"]
         if not gesture or gesture == "NONE":
             return "NONE"
@@ -152,7 +196,7 @@ class App:
                 self.fired.add(op) #zapamiętuje, że komenda została wywołana
                 if op in self.commands:
                     self.commands[op]() #wywołanie komendy
-        #Ogólnie to cała ta funkcja for nade mną jest po to, żeby niechacy nie nie wywołać komendy, dlateo zapisuje czas i po sekundzie dopiero aktywuje komende
+        #pętla wyżej pilnuje, żeby nie wywołać komendy przypadkiem: gest musi trwać HOLD_TIME, zanim zadziała
 
     def detect_hands(self, frame):
         """wykrywa dlonie"""
@@ -204,13 +248,13 @@ class App:
                 in_r = (w - box_w - m_x <= bx <= w - m_x) and (h - box_h - m_y <= by <= h - m_y)
                 return in_l or in_r
 
-            # Filtruje banknoty, które leżą w obszarze kwadratów dłoni
+            # Odrzuca banknoty, których środek leży w kwadracie na dłoń
             objects = [o for o in objects if not is_in_hand_box(
-                (o["box"][0] + o["box"][2]) / 2, #czy jest w srodku pierwszego
-                (o["box"][1] + o["box"][3]) / 2 #albo drugiego, x oraz y podzielic na 2 to srodek
+                (o["box"][0] + o["box"][2]) / 2,
+                (o["box"][1] + o["box"][3]) / 2,
             )]
 
-        self.counter.set_objects(objects)
+        self.counter.set_objects(self.label_with_recognizer(frame, objects))
         return objects
 
     def run(self):
@@ -230,7 +274,12 @@ class App:
                 visible_objects = self.counter.get_visible_objects()
                 self.object_system.draw(img, visible_objects)
 
-            model_name = self.object_system.model_name if self.object_system else None
+            model_name = None
+            if self.object_system:
+                model_name = self.object_system.model_name
+                if self.recognizer_name != "Detektor":
+                    suffix = "" if self.classifier else " (brak wag)"
+                    model_name = f"{model_name} | {self.recognizer_name}{suffix}"
             self.ui.draw(img, self.ui_system, self.counter, operations, self.mode, model_name)
 
             self.ui.show(img)
@@ -240,6 +289,10 @@ class App:
                 break
             elif key == ord("\t"):
                 self.next_mode()
+            elif key == ord("y"):
+                self.next_detector()
+            elif key == ord("n"):
+                self.next_recognizer()
 
         self.camera.stop()
         self.cap.release()

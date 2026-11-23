@@ -6,13 +6,14 @@ import yaml
 from objects.config import CLASS_VALUES, DATA_YAML, DATASET_DIR, EXPORT_DIR
 from objects.dataset_splitter import DatasetSplitter
 from objects.dataset_stats import DatasetStats
+from objects.negatives import Negatives
 
 IMAGE_EXTS = [".jpg", ".jpeg", ".png"]
 
 
 class RoboflowDataset:
     def __init__(self, zip_path):
-        self.zip_path = zip_path  #roboflow.zip
+        self.zip_path = zip_path
         self.class_names = []
 
     def prepare(self):
@@ -28,7 +29,8 @@ class RoboflowDataset:
         split = DatasetSplitter().split(samples)
         self.copy_files(split)
         self.save_data_yaml()
-        DatasetStats(self.class_names).report(split)
+        negatives = Negatives().prepare(split)
+        DatasetStats(self.class_names).report(split, negatives)
         print(f"\nGotowe: {DATA_YAML}")
 
     def unzip(self):
@@ -44,13 +46,11 @@ class RoboflowDataset:
         return data["names"]
 
     def check_class_names(self):
-        # pomocniczna, usunac na final
         for name in self.class_names:
             if name not in CLASS_VALUES:
                 print(f"UWAGA: klasa '{name}' nie ma kwoty w CLASS_VALUES (objects/config.py), bedzie 0 zl")
 
     def find_images(self):
-        # do dzielenia w dataSplitter
         samples = []
         for image in sorted(EXPORT_DIR.glob("*/images/*")):
             if image.suffix.lower() not in IMAGE_EXTS:
@@ -72,9 +72,7 @@ class RoboflowDataset:
 
             for image, label in samples:
                 shutil.copy(image, images_dir / image.name)
-                #brak .txt = zdjecie bez pieniedzy (tlo), YOLO to rozumie
-                if label.exists():
-                    shutil.copy(label, labels_dir / label.name)
+                shutil.copy(label, labels_dir / label.name)
 
     def save_data_yaml(self):
         #plik dla YOLO: gdzie sa zdjecia i jak sie nazywaja klasy
