@@ -74,8 +74,8 @@ class App:
         self.counter = CashCounter()
         self.ui = UI()
 
-        self.ui_system = 1           # na start styl 1 (pół na pół)
-        self.modes = ("A", "B", "C")
+        self.ui_system = 1           # Styl 2 jako aktywny
+        self.modes = ("A", "B", "C", "D")
         self.mode = "A"
 
         self.HOLD_TIME = 0.6

@@ -1,8 +1,8 @@
 import numpy as np
 import mediapipe as mp
 import cv2, os, pickle
-import warnings
-warnings.filterwarnings("ignore", message="SymbolDatabase.GetPrototype")
+
+from gestures.cropper import crop_from_landmarks
 
 MIDDLE_MCP = 9
 
@@ -13,6 +13,8 @@ PROG_OK = 0.35
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 B_MODEL_PATH = os.path.join(ROOT, "gest_results", "B_MLP_model.pkl")
 C_MODEL_PATH = os.path.join(ROOT, "gest_results", "C_SVC_model.pkl")
+D_MODEL_PATH = os.path.join(ROOT, "gest_results", "D_CNN_model.pt")
+D_MIN_CONFIDENCE = 0.6
 
 class Gesture():
     def __init__(self):
@@ -26,6 +28,8 @@ class Gesture():
             self.modelB = pickle.load(f)
         with open(C_MODEL_PATH, "rb") as f:
             self.modelC = pickle.load(f)
+        self.cnn_model = None
+        self.cnn_gestures = None
 
 
     def detect_gesture(self, img, mode="B"):
@@ -48,6 +52,8 @@ class Gesture():
                     gesture = self.B(normalized_lm)
                 elif mode == "C":
                     gesture = self.C(normalized_lm)
+                elif mode == "D":  # NOWE
+                    gesture = self.D(img, hand)
 
                 detected_hands.append({"side": label, "gesture": gesture, "landmarks": hand})
         return detected_hands
@@ -91,6 +97,17 @@ class Gesture():
     def C(self, lm): #Uczenie maszynowe na cechach inżynieryjnych
         lm_flat = lm.flatten().reshape(1, -1)
         gesture = self.modelC.predict(lm_flat)[0]
+        return gesture
+
+    def D(self, img, hand):
+        if self.cnn_model is None:
+            from gestures.train_cnn import load_cnn
+            self.cnn_model, self.cnn_gestures = load_cnn(D_MODEL_PATH)
+        from gestures.train_cnn import classify_crop
+        crop = crop_from_landmarks(img, hand)
+        gesture, confidence = classify_crop(self.cnn_model, self.cnn_gestures, crop)
+        if confidence < D_MIN_CONFIDENCE:
+            return "NONE"  # sieć nie jest pewna
         return gesture
 
     def _distance(self, point1, point2):
