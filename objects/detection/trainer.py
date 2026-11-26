@@ -22,8 +22,7 @@ class DetectorTrainer:
             self.train(model_name, model_path(model_name), batch=RTDETR_BATCH)
 
     def train_locator(self):
-        #ten sam YOLO, ale wszystkie nominaly to jedna klasa "banknot". Mowi gdzie, a nie jaki -
-        #nominal podaje potem klasyfikator (potok "znajdz banknot + klasyfikator")
+        #ten sam YOLO, ale wszystkie nominaly to jedna klasa "banknot". Mowi gdzie, a nie jaki -nominal podaje potem klasyfikator (potok "znajdz banknot + klasyfikator")
         self.train(LOCATOR_BASE, LOCATOR_MODEL, single_cls=True)
 
     def train(self, model_name, save_as, batch=BATCH, **extra):
@@ -32,7 +31,6 @@ class DetectorTrainer:
 
         MODELS_DIR.mkdir(exist_ok=True)
         print(f"\n=== Trening {model_name} -> {save_as.name} na {self.device} ===")
-        #model juz wytrenowany na zbiorze COCO, douczamy go tylko na pieniadzach (transfer learning)
         model_class = RTDETR if model_name.startswith("rtdetr") else YOLO
         model = model_class(model_name + ".pt")
         model.train(
@@ -44,7 +42,7 @@ class DetectorTrainer:
             seed=SEED,
             deterministic=True,
             patience=30,
-            fliplr=0.0,  #bez odbic: banknot w lustrze nie istnieje, a odbicie to tez przeciek miedzy zbiorami
+            fliplr=0.0,  #bez odbic
             project=str(RUNS_DIR),
             name=save_as.stem,
             exist_ok=True,

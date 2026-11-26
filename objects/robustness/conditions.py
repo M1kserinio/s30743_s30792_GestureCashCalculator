@@ -10,7 +10,6 @@ class Conditions:
     def __init__(self, backgrounds):
         #zdjecia bez banknotow z testu (datasets/brak_banknotu/test) - do podmiany tla i do zaslaniania
         self.backgrounds = backgrounds
-        #nazwa folderu -> (czego dotyczy, funkcja)
         self.all = {
             "oryginal": ("bez zmian", self.original),
             "ciemno": ("oswietlenie", self.dark),
@@ -32,21 +31,13 @@ class Conditions:
 
     def original(self, image, boxes, rng):
         return image, boxes
-
     def dark(self, image, boxes, rng):
-        #wieczor w pokoju: malo swiatla, a kamerka podbija wzmocnienie, wiec rosnie szum
         return to_uint8(image * 0.35 + rng.normal(0, 7, image.shape)), boxes
-
     def overexposed(self, image, boxes, rng):
-        #lampa prosto w banknot: jasne miejsca sie "wypalaja" i gina detale
         return to_uint8(image * 1.6 + 45), boxes
-
     def warm_light(self, image, boxes, rng):
-        #zarowka zamiast dnia: wszystko zolto-pomaranczowe, a nominaly rozrozniamy m.in. po kolorze (BGR)
         return to_uint8(image * np.array([0.65, 0.95, 1.2])), boxes
-
     def shadow(self, image, boxes, rng):
-        #cien (np. reki albo telefonu) z miekka krawedzia przechodzacy przez kadr
         h, w = image.shape[:2]
         angle = rng.uniform(0, np.pi)
         center_x, center_y = rng.uniform(0.3, 0.7) * w, rng.uniform(0.3, 0.7) * h
@@ -56,22 +47,18 @@ class Conditions:
         return to_uint8(image * (1 - 0.6 * mask)[..., None]), boxes
 
     def other_background(self, image, boxes, rng):
-        #banknoty zostaja na miejscu, a reszta kadru to mozaika z 4 kawalkow innych zdjec bez banknotow
         h, w = image.shape[:2]
         tiles = [cover(self.pick(rng), w // 2, h // 2) for _ in range(4)]
         background = cv2.resize(np.vstack([np.hstack(tiles[:2]), np.hstack(tiles[2:])]), (w, h))
         return paste_boxes(background, image, boxes), boxes
 
     def busy_background(self, image, boxes, rng):
-        #kolorowa kratka (obrus, gazeta) - trudne dla modeli patrzacych glownie na kolor
         h, w = image.shape[:2]
         cells = rng.integers(0, 256, (12, 12, 3), dtype=np.uint8)
         background = cv2.resize(cells, (w, h), interpolation=cv2.INTER_NEAREST)
         return paste_boxes(background, image, boxes), boxes
 
     def rotate(self, image, boxes, rng, degrees):
-        #kamera trzymana krzywo. Banknot w ramce przyblizamy elipsa wpisana w ramke (tak robi albumentations),
-        #bo prostokat opisany na obroconych rogach ramki bylby duzo wiekszy od samego banknotu
         h, w = image.shape[:2]
         angle = degrees * rng.choice([-1, 1])
         matrix = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
@@ -81,7 +68,6 @@ class Conditions:
                                    outline=ellipse_points)
 
     def tilt(self, image, boxes, rng):
-        #kamera patrzy z ukosa: jedna krawedz kadru "ucieka" w glab i robi sie krotsza
         h, w = image.shape[:2]
         squeeze = 0.15
         source = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
@@ -105,8 +91,6 @@ class Conditions:
         return warped, move_boxes(boxes, lambda points: cv2.perspectiveTransform(points[None], matrix)[0], w, h)
 
     def cover(self, image, boxes, rng, part):
-        #czesc banknotu przykryta (palcem, portfelem, innym przedmiotem) - pasek od jednego boku ramki
-        #nowa ramka obejmuje tylko widoczna czesc, bo tak zaznaczylby ja czlowiek
         result = image.copy()
         visible = []
         for class_id, x1, y1, x2, y2 in pixel_boxes(boxes, image):
@@ -127,7 +111,6 @@ class Conditions:
         return result, visible
 
     def fold(self, image, boxes, rng):
-        #banknot zgiety w poprzek: jedna polowa odchylona od swiatla, przy zgieciu ciemna linia
         result = image.astype(np.float32)
         for _, x1, y1, x2, y2 in pixel_boxes(boxes, image):
             region = result[y1:y2, x1:x2].copy()
@@ -143,7 +126,6 @@ class Conditions:
         return to_uint8(result), boxes
 
     def dog_ear(self, image, boxes, rng):
-        #zagiety rog: w rogu widac tlo, a obok lezy odwrocony, ciemniejszy trojkat z tylu banknotu
         result = image.copy()
         image_h, image_w = image.shape[:2]
         for _, x1, y1, x2, y2 in pixel_boxes(boxes, image):
@@ -158,7 +140,7 @@ class Conditions:
             b = np.float32([corner_x, corner_y + step_y])
             folded = reflect(corner, a, b)
 
-            #rog po zagieciu = lustrzane odbicie rogu wzgledem linii a-b, przyciemnione i wyblakle
+            #rog po zagieciu = lustrzane odbicie rogu wzgledem linii a-b
             matrix = cv2.getAffineTransform(np.float32([corner, a, b]), np.float32([folded, a, b]))
             flap = cv2.warpAffine(image, matrix, (image_w, image_h)).astype(np.float32)
             gray = cv2.cvtColor(flap.astype(np.uint8), cv2.COLOR_BGR2GRAY)[..., None]
@@ -174,7 +156,6 @@ class Conditions:
         return result, boxes
 
     def dirt(self, image, boxes, rng):
-        #sfatygowany banknot: pozolkly papier, plamy i rysy
         result = image.astype(np.float32)
         for _, x1, y1, x2, y2 in pixel_boxes(boxes, image):
             region = result[y1:y2, x1:x2].copy()
@@ -197,7 +178,6 @@ class Conditions:
         return to_uint8(result), boxes
 
     def motion_blur(self, image, boxes, rng):
-        #reka z banknotem sie rusza, a kamerka ma dlugi czas naswietlania
         size = 15
         kernel = np.zeros((size, size), np.float32)
         kernel[size // 2, :] = 1
@@ -208,21 +188,16 @@ class Conditions:
     def pick(self, rng):
         return self.backgrounds[rng.integers(len(self.backgrounds))]
 
-
 def to_uint8(image):
     return np.clip(image, 0, 255).astype(np.uint8)
 
-
 def fill_color(image):
-    #kolor "pustego" miejsca po obrocie albo po zagietym rogu - mediana calego zdjecia
     return tuple(float(v) for v in np.median(image.reshape(-1, 3), axis=0))
-
 
 def pixel_boxes(boxes, image):
     h, w = image.shape[:2]
     return [(class_id, max(0, int(x1)), max(0, int(y1)), min(w, int(round(x2))), min(h, int(round(y2))))
             for class_id, x1, y1, x2, y2 in boxes]
-
 
 def paste_boxes(background, image, boxes):
     result = background.copy()
@@ -230,26 +205,20 @@ def paste_boxes(background, image, boxes):
         result[y1:y2, x1:x2] = image[y1:y2, x1:x2]
     return result
 
-
 def cover(patch, width, height):
-    #skaluje kawalek tak, zeby przykryl caly prostokat, i obcina nadmiar (jak "cover" w CSS)
     scale = max(width / patch.shape[1], height / patch.shape[0])
     resized = cv2.resize(patch, (max(width, round(patch.shape[1] * scale)), max(height, round(patch.shape[0] * scale))))
     top = (resized.shape[0] - height) // 2
     left = (resized.shape[1] - width) // 2
     return resized[top:top + height, left:left + width]
 
-
 def corner_points(x1, y1, x2, y2):
     return np.float32([[x1, y1], [x2, y1], [x2, y2], [x1, y2]])
-
 
 def ellipse_points(x1, y1, x2, y2, count=72):
     angles = np.linspace(0, 2 * np.pi, count, endpoint=False)
     return np.float32(np.stack([(x1 + x2) / 2 + (x2 - x1) / 2 * np.cos(angles),
                                 (y1 + y2) / 2 + (y2 - y1) / 2 * np.sin(angles)], axis=1))
-
-
 def move_boxes(boxes, transform, width, height, outline=corner_points):
     moved = []
     for class_id, x1, y1, x2, y2 in boxes:
@@ -258,7 +227,6 @@ def move_boxes(boxes, transform, width, height, outline=corner_points):
         area = (new_x2 - new_x1) * (new_y2 - new_y1)
         new_x1, new_y1 = max(0.0, new_x1), max(0.0, new_y1)
         new_x2, new_y2 = min(float(width), new_x2), min(float(height), new_y2)
-        #banknot wypchniety w wiekszosci poza kadr nie jest juz do znalezienia
         if new_x2 > new_x1 and new_y2 > new_y1 and (new_x2 - new_x1) * (new_y2 - new_y1) >= 0.5 * area:
             moved.append((class_id, float(new_x1), float(new_y1), float(new_x2), float(new_y2)))
     return moved

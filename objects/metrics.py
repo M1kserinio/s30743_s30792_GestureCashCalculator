@@ -48,9 +48,7 @@ def iou(a, b):
 
 
 def match_any_class(predictions, truths, threshold=0.5):
-    #Para (prawdziwa klasa, przewidziana klasa) dla kazdej ramki, "tlo" gdy nie ma pary,
-    #Ramke dopasowujemy po samym polozeniu, a klase sprawdzamy dopiero potem.
-    #Dzieki temu widac, czy model zgubil banknot, czy znalazl go, ale pomylil nominal.
+    #Para (prawdziwa klasa, przewidziana klasa) dla kazdej ramki, "tlo" gdy nie ma pary, Ramke dopasowujemy po samym polozeniu, a klase sprawdzamy dopiero potem.
 
     pairs = []
     used = set()
@@ -70,7 +68,6 @@ def match_any_class(predictions, truths, threshold=0.5):
 
 
 def mean_average_precision(all_predictions, all_truths, class_names):
-    #mAP@0.5 i mAP@0.5:0.95 policzone tak samo dla kazdego potoku (interpolacja 101 punktow jak w COCO)
     thresholds = np.arange(0.5, 0.96, 0.05)
     per_class = []
     for name in class_names:
@@ -111,7 +108,7 @@ def average_precision(scores, hits, positives):
     true_positives = np.cumsum(hits)
     recall = true_positives / positives
     precision = true_positives / np.arange(1, len(hits) + 1)
-    #dla kazdego recall bierzemy najlepsza precision, jaka da sie osiagnac przy tym albo wiekszym recall
+    #dla kazdego recall bierzemy najlepsza precision
     precision = np.maximum.accumulate(precision[::-1])[::-1]
     points = np.searchsorted(recall, np.linspace(0, 1, 101), side="left")
     return float(np.mean([precision[i] if i < len(precision) else 0.0 for i in points]))

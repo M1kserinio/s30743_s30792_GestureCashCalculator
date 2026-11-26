@@ -17,8 +17,7 @@ class DetectorPipeline:
 
 
 class TwoStagePipeline:
-    #Najpierw "gdzie jest jakis banknot" (lokalizator), potem "jaki to nominal" (klasyfikator na wycinku),
-    #Klasyfikator zna tez klase "brak", wiec moze odrzucic ramke postawiona na rece albo na scianie.
+    #Najpierw "gdzie jest jakis banknot" (lokalizator), potem "jaki to nominal", Klasyfikator zna tez klase "brak", wiec moze odrzucic ramke postawiona na rece albo na scianie.
 
     def __init__(self, locator_weights, classifier_path, device):
         self.locator = load_detector(locator_weights)

@@ -1,13 +1,10 @@
 from pathlib import Path
 
-#WSZYSTKIE USTAWIENIA STUDY 2 SA TUTAJ
-
-#sciezki liczone od folderu projektu, zeby dzialalo niezaleznie skad odpalamy skrypt
 ROOT = Path(__file__).resolve().parent.parent
 EXPORT_DIR = ROOT / "datasets" / "roboflow_export"
 DATASET_DIR = ROOT / "datasets" / "pieniadze"
 DATA_YAML = DATASET_DIR / "data.yaml"
-NEGATIVES_DIR = ROOT / "datasets" / "brak_banknotu"  #wycinki tla z naszych zdjec, osobno dla train/val/test
+NEGATIVES_DIR = ROOT / "datasets" / "brak_banknotu"
 ROBUSTNESS_DIR = ROOT / "datasets" / "odpornosc"
 RUNS_DIR = ROOT / "runs" / "pieniadze"
 MODELS_DIR = ROOT / "models"
@@ -15,36 +12,28 @@ BEST_MODEL = MODELS_DIR / "pieniadze_best.pt"
 LOCATOR_MODEL = MODELS_DIR / "pieniadze_locator.pt"
 RESULTS_DIR = ROOT / "results"
 
-#podzial jest zapisany w repo, zeby kazdy model (i kazdy z nas) dostal dokladnie te same zdjecia
 SPLIT_FILE = ROOT / "splits" / "pieniadze_split.csv"
 
-#podzial zbioru, reszta (~70%) idzie do train
 TEST_PART = 0.15
 VAL_PART = 0.15
-#od tego podobienstwa (cechy ResNet-18, cosinus) dwa zdjecia uznajemy za te sama sesje
-#sprawdzone na oko: powyzej 0.88 to zawsze to samo miejsce i ta sama chwila, ponizej zwykle inne sceny
 SESSION_SIMILARITY = 0.88
 
-#na szybki probny trening wystarczy YOLO_MODELS = ["yolo11n"] i EPOCHS = 20
+
 YOLO_MODELS = ["yolo11n", "yolo11s", "yolo11m"]  #n (najszybszy) -> s -> m (najdokladniejszy)
-RTDETR_MODELS = ["rtdetr-l"]  #transformer, bez NMS
+RTDETR_MODELS = ["rtdetr-l"]
 DETECTOR_MODELS = YOLO_MODELS + RTDETR_MODELS
 LOCATOR_BASE = "yolo11s"  #z tego robimy lokalizator jednej klasy "banknot" do potoku 2-etapowego
 EPOCHS = 100
-BATCH = 16  #blad "CUDA out of memory" -> zmniejszyc do 8
-RTDETR_BATCH = 8  #RT-DETR zajmuje duzo wiecej pamieci karty niz YOLO, w razie bledu -> 4
+BATCH = 16  #jezeli blad do to 8 zmnijszyc
+RTDETR_BATCH = 8  #RT-DETR jezeli ma blad to do 4
 IMGSZ = 640
-SEED = 0  #ten sam seed wszedzie -> przy powtorzeniu wychodza te same wyniki
-
+SEED = 0
 CONFIDENCE = 0.44
 NMS_IOU = 0.60
-HISTORY_SIZE = 10  #z ilu ostatnich klatek bierzemy najczestszy odczyt kwoty
-
-#klasa "brak banknotu" (tlo, sama reka). Detektor dostaje takie zdjecia bez ramek, klasyfikatory jako 7. klase
+HISTORY_SIZE = 10
 BACKGROUND_CLASS = "brak"
-BACKGROUND_PART = 0.1  #ile zdjec tla dorzucamy do train/val detektora (ultralytics radzi do 10%)
+BACKGROUND_PART = 0.1
 
-#nazwa klasy z Roboflow -> ile to zlotych
 CLASS_VALUES = {
     #banknoty
     "10zl": 10.0,
@@ -84,7 +73,6 @@ BOX_COLORS = {
 }
 
 def model_path(model_name):
-    #gdzie lezy wytrenowany model, np. models/pieniadze_yolo11n.pt
     return MODELS_DIR / f"pieniadze_{model_name}.pt"
 
 
@@ -98,7 +86,6 @@ def best_device():
 
 
 def benchmark_devices():
-    #czas mierzymy zawsze na CPU (jest na kazdym komputerze), a jak jest karta, to jeszcze na niej
     devices = ["cpu"]
     if best_device() != "cpu":
         devices.append(best_device())
@@ -106,5 +93,5 @@ def benchmark_devices():
 
 
 def device_name(device):
-    #ultralytics chce "0", zwykly PyTorch "cuda"
+    #ultralytics chce "0", zwykly PyTorch "cuda" 1 2 1 1
     return "cuda" if device == "0" else device

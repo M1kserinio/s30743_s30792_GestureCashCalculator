@@ -11,9 +11,7 @@ from objects.robustness.conditions import Conditions
 
 
 class RobustnessDataset:
-    #Zapisuje zbior testowy pod kazdym warunkiem do datasets/odpornosc/<warunek>/ (images + labels jak w YOLO).
-    #Zmienione zdjecia sa na dysku, wiec kazdy model dostaje dokladnie te same i mozna je obejrzec
-
+    #Zapisuje zbior testowy pod kazdym warunkiem do datasets/odpornosc/<warunek>/ (images + labels jak w YOLO)
     def prepare(self):
         test_images = sorted((DATASET_DIR / "test" / "images").glob("*"))
         backgrounds = [cv2.imread(str(path)) for path in sorted((NEGATIVES_DIR / "test").glob("*.jpg"))]
@@ -42,7 +40,6 @@ class RobustnessDataset:
         self.save_examples(examples)
 
     def example_index(self, test_images):
-        #na obrazku z przykladami lepiej widac zmiany na zdjeciu z reka niz na kolazu
         for index, path in enumerate(test_images):
             if not path.name.startswith("mix_banknotow"):
                 return index
@@ -64,7 +61,7 @@ class RobustnessDataset:
         label_path.write_text("\n".join(lines) + ("\n" if lines else ""))
 
     def save_examples(self, examples):
-        #jedno zdjecie pod kazdym warunkiem, z ramkami po przeliczeniu - do pracy i do sprawdzenia, czy ramki pasuja
+        #jedno zdjecie pod kazdym warunkiem, z ramkami po przeliczeniu
         plt = ResultsWriter().plt()
         columns = 4
         rows = (len(examples) + columns - 1) // columns

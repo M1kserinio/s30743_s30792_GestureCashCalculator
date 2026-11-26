@@ -6,14 +6,13 @@ import cv2
 from objects.config import BACKGROUND_PART, DATASET_DIR, NEGATIVES_DIR, SEED
 from objects.labels import read_labels, to_pixels
 
-PATCH_MIN_SIDE = 0.2  #pas tla musi miec co najmniej 20% krotszego boku zdjecia
-PATCH_GAP = 0.03      #odstep od ramek, zeby w tle nie zostal rog banknotu
-PATCH_MAX_RATIO = 2   #dluzszy bok najwyzej 2x krotszy, inaczej to tylko cienki pasek
+PATCH_MIN_SIDE = 0.2
+PATCH_GAP = 0.03      #odstep
+PATCH_MAX_RATIO = 2   #dluzszy bok najwyzej 2x krotszy
 
 
 class Negatives:
-    #Zdjecia bez banknotu: klasa "brak" dla klasyfikatorow i proba do liczenia fake
-    #Rowniez z faktu ze nie bylo w zbiorze zdjec bez bankonotow, to wycinamy tla z oebcnych
+    #Zdjecia bez banknotu: klasa "brak" dla klasyfikatorow i proba do liczenia fake (tez dlateg ze nie mielismy an tym kagglowym zbiorze pustych fot bez bankotow na tlach)
 
     def prepare(self, split):
         if NEGATIVES_DIR.exists():
@@ -60,7 +59,6 @@ class Negatives:
         if short < PATCH_MIN_SIDE * min(image_w, image_h):
             return None
 
-        #za dlugi pas przycinamy od srodka
         if x2 - x1 > PATCH_MAX_RATIO * short:
             middle = (x1 + x2) // 2
             x1, x2 = middle - short, middle + short
@@ -70,8 +68,6 @@ class Negatives:
         return image[y1:y2, x1:x2]
 
     def add_to_detector_set(self, split_name, images_in_split):
-        #do train i val detektora dokladamy ~10% zdjec tla bez ramek, zeby uczyl sie, czego nie zaznaczac
-        #test zostaje bez tla: mAP liczymy na samych banknotach, a falszywe alarmy osobno na brak_banknotu/test
         if split_name == "test":
             return 0
         negatives = sorted((NEGATIVES_DIR / split_name).glob("*.jpg"))

@@ -127,7 +127,7 @@ class DetectorEvaluator:
         return rows
 
     def confusion(self, pairs):
-        #[prawdziwa][przewidziana], "tlo" = zgubiony banknot (kolumna) albo ramka na pustym miejscu (wiersz)
+        #[prawdziwa][przewidziana], "tlo" = zgubiony banknot ( jakko kolumna) albo ramka na pustym miejscu (wiersz)
         counts = Counter(pairs)
         labels = self.class_names + ["tlo"]
         return labels, [[counts[(actual, predicted)] for predicted in labels] for actual in labels]
