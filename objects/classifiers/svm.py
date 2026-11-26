@@ -12,9 +12,7 @@ from torchvision import datasets
 from objects.classifiers.config import CLASSIFICATION_DATASET_DIR, CNN_IMAGE_SIZE, COLOR_MODEL, HOG_MODEL
 from objects.config import MODELS_DIR, SEED
 
-
 def hog_features(bgr_image, image_size=128):
-    """Kierunki krawedzi w malych komorkach obrazu (HOG). Podejscie sprzed sieci splotowych, koloru nie widzi."""
     gray = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2GRAY)
     gray = cv2.resize(gray, (image_size, image_size), interpolation=cv2.INTER_AREA)
     hog = cv2.HOGDescriptor((image_size, image_size), (16, 16), (8, 8), (8, 8), 9)
@@ -22,11 +20,8 @@ def hog_features(bgr_image, image_size=128):
 
 
 def color_features(bgr_image, image_size=128):
-    """Jakie kolory i w jakich ilosciach sa na wycinku. Ksztaltu i napisow ta metoda w ogole nie widzi.
+    #Jakie kolory i w jakich ilosciach sa na wycinku. Ksztaltu i napisow ta metoda w ogole nie widzi.
 
-    Polskie banknoty roznia sie barwa (20 zl fioletowy, 50 zl niebieski, 100 zl zielony, 200 zl zolty),
-    wiec juz sam rozklad kolorow sporo mowi. Za to kazda zmiana swiatla przesuwa ten rozklad.
-    """
     image = cv2.resize(bgr_image, (image_size, image_size), interpolation=cv2.INTER_AREA)
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     #odcien x nasycenie: 18 przedzialow barwy po 10 stopni i 4 poziomy nasycenia

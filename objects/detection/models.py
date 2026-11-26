@@ -2,7 +2,7 @@ from ultralytics import RTDETR, YOLO
 
 
 def load_detector(weights):
-    #Wczytuje wagi YOLO albo RT-DETR.
+    #Wczytuje wagi YOLO albo RT-DETR
     #RT-DETR trzeba otworzyc klasa RTDETR: YOLO() wczytaloby te wagi, ale potem robilo NMS
     #na wyjsciu, ktore NMS w ogole nie potrzebuje. Typ bierzemy z samego pliku, nie z nazwy,
     #bo pieniadze_best.pt moze byc kopia dowolnego z nich

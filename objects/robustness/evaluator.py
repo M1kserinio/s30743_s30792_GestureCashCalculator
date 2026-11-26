@@ -13,15 +13,13 @@ from objects.robustness.conditions import Conditions
 
 class RobustnessEvaluator:
     #Te same modele na zmienionych zdjeciach testowych: tabela model x warunek i mapy ciepla.
-    #Potoki (detektor albo lokalizator + klasyfikator) dostaja cale zdjecie.
-    #Klasyfikatory osobno dostaja wycinki z prawdziwych ramek, zeby bylo widac, ile traci sam klasyfikator,
-    #a ile to wina tego, ze lokalizator nie znalazl banknotu
+    #Potoki (detektor albo lokalizator + klasyfikator) dostaja cale zdjecie
+    #Klasyfikatory osobno dostaja wycinki z prawdziwych ramek, zeby bylo widac, ile traci sam klasyfikator a ile to wina tego, ze lokalizator nie znalazl banknotu
 
     def __init__(self):
         self.pipelines = PipelineEvaluator()
         self.writer = ResultsWriter()
-        #tu liczy sie tylko trafnosc, wiec bierzemy najszybsze urzadzenie (wynik od niego nie zalezy)
-        self.device = best_device()
+        self.device = best_device() #tu liczy sie tylko trafnosc, wiec bierzemy najszybsze urzadzenie
 
     def evaluate_all(self):
         folders = self.condition_folders()
@@ -85,13 +83,11 @@ class RobustnessEvaluator:
         return crops, labels
 
     def add_drop(self, rows, key, metric):
-        #ile model traci wzgledem niezmienionego testu - latwiej to porownac niz same wartosci
         base = {row[key]: row[metric] for row in rows if row["condition"] == "oryginal"}
         for row in rows:
             row[f"{metric}_drop"] = round(base[row[key]] - row[metric], 4) if row[key] in base else ""
 
     def save_heatmap(self, file_name, title, rows, key, metric):
-        #warunki w wierszach, modele w kolumnach - warunkow jest duzo wiecej, wiec tak miesci sie na stronie A4
         models = list(dict.fromkeys(row[key] for row in rows))
         conditions = list(dict.fromkeys(row["condition"] for row in rows))
         values = {(row[key], row["condition"]): row[metric] for row in rows}

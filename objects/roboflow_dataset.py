@@ -75,8 +75,6 @@ class RoboflowDataset:
                 shutil.copy(label, labels_dir / label.name)
 
     def save_data_yaml(self):
-        #plik dla YOLO: gdzie sa zdjecia i jak sie nazywaja klasy
-        #"path" jako pelna sciezka, bo sciezki z Roboflow (../train/images) potrafia sie rozjechac
         data = {
             "path": str(DATASET_DIR),
             "train": "train/images",

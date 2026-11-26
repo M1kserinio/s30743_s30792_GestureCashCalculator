@@ -8,7 +8,6 @@ SAME_BACKGROUND_DIFF = 10   #srednia roznica pikseli (0-255): to samo tlo daje ~
 
 
 class SessionGroups:
-    #Laczy w grupy zdjecia z jednej sesji: to samo miejsce i ten sam moment, czesto sasiednie klatki nagrania.
     def __init__(self, images, collage_boxes):
         self.images = images
         self.collage_boxes = collage_boxes  #ramki dla kolazy mix_banknotow, dla reszty None
@@ -34,7 +33,6 @@ class SessionGroups:
         return [find(i) for i in range(len(self.images))]
 
     def scene_similarity(self):
-        #ResNet18, tutaj nie rozpoznaje nominalow, tylko opisuje cala scene 512 liczbami
         import torch
         from torchvision.models import ResNet18_Weights, resnet18
 
@@ -65,9 +63,6 @@ class SessionGroups:
         return torch.stack(tensors)
 
     def same_background(self, collages):
-        #kolaz = te same wyciete banknoty wklejone na jedno z kilkunastu tel. Dla ResNetu wszystkie kolaze sa
-        #podobne (bo banknoty sie powtarzaja), wiec o sesji decyduje samo tlo: porownujemy miniatury
-        #tylko w miejscach, gdzie na zadnym z dwoch zdjec nie ma banknotu
         thumbs, masks = [], []
         for i in collages:
             image = cv2.imread(str(self.images[i]))

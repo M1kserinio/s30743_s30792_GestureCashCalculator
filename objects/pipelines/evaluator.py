@@ -12,15 +12,15 @@ from objects.metrics import bootstrap_interval, false_alarm_stats, match_any_cla
 from objects.pipelines.pipelines import DetectorPipeline, TwoStagePipeline
 from objects.results_writer import ResultsWriter
 
-#do mAP potrzebna jest cala lista ramek, takze slabych. Ponizej 0.05 ramki prawie nic juz nie zmieniaja,
+#do mAP potrzebna jest cala lista ramek, takze slabych. Ponizej 0.05 ramki prawie nic juz nie zmieniaja
 #a potok 2-etapowy musialby klasyfikowac setki smieciowych wycinkow
 MIN_CONF = 0.05
 
 
 class PipelineEvaluator:
-    #Detektor kontra "znajdz banknot + klasyfikator" na tych samych pelnych zdjeciach testowych.
-    #Wszystkie potoki sa liczone tym samym kodem (objects/metrics.py), wiec liczby stoja w jednej tabeli.
-    #Detektor tez tu jest, ale jego mAP z ultralytics (tabela detektorow) moze sie roznic o pare setnych,
+    #Detektor kontra "znajdz banknot + klasyfikator" na tych samych pelnych zdjeciach testowych
+    #Wszystkie potoki sa liczone tym samym kodem (objects/metrics.py), wiec liczby stoja w jednej tabeli
+    #Detektor tez tu jest, ale jego mAP z ultralytics moze sie roznic o pare setnych,
     #bo ultralytics bierze ramki od pewnosci 0.001, a tu od 0.05
 
     def __init__(self):
@@ -63,7 +63,7 @@ class PipelineEvaluator:
         self.writer.save_hardware()
 
     def specs(self):
-        #(nazwa w tabeli, rodzaj, funkcja budujaca potok na danym urzadzeniu)
+        #(nazwa w tabeli, rodzaj, funkcja budujaca potok)
         specs = []
         for name in DETECTOR_MODELS:
             if model_path(name).exists():
@@ -90,7 +90,7 @@ class PipelineEvaluator:
         return load_labeled_folder(folder, self.class_names)
 
     def scores(self, predictions, truths):
-        #mAP z pelnej listy ramek, reszta przy progu z aplikacji (CONFIDENCE)
+        #mAP z pelnej listy ramek, reszta przy progu z aplikacji
         map50, map50_95 = mean_average_precision(predictions, truths, self.class_names)
         row = {"map50": round(map50, 4), "map50_95": round(map50_95, 4)}
         point, pairs = self.operating_point(predictions, truths)
@@ -106,7 +106,7 @@ class PipelineEvaluator:
         precision = correct / found_count if found_count else 0.0
         recall = correct / real_count if real_count else 0.0
 
-        #to, czego naprawde chce uzytkownik kalkulatora: czy suma na zdjeciu sie zgadza
+        #to czego naprawde chce uzytkownik kalkulatora: czy suma na zdjeciu sie zgadza
         sums_ok, sum_errors = [], []
         for found, real in zip(kept, truths):
             error = abs(sum(CLASS_VALUES[p["label"]] for p in found) - sum(CLASS_VALUES[t["label"]] for t in real))
@@ -130,7 +130,7 @@ class PipelineEvaluator:
     def timing(self, cpu_pipeline, build, fps_meter):
         row = {}
         for device in benchmark_devices():
-            #nowy potok dla kazdego urzadzenia, bo YOLO zapamietuje urzadzenie z pierwszego predict
+            #nowy potok dla azdego urzadzenia YOLO zapamietuje urzadzenie z pierwszego predict
             pipeline = cpu_pipeline if device == "cpu" else build(device)
             ms, fps = fps_meter.measure(pipeline.run)
             row[f"ms_{device_name(device)}"] = round(ms, 1)

@@ -10,7 +10,6 @@ class ResultsWriter:
         RESULTS_DIR.mkdir(exist_ok=True)
 
     def save_csv(self, file_name, rows):
-        #rows = lista slownikow, klucze z pierwszego wiersza to naglowki kolumn
         with open(RESULTS_DIR / file_name, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
             writer.writeheader()
@@ -18,7 +17,6 @@ class ResultsWriter:
         print(f"Zapisano {RESULTS_DIR / file_name}")
 
     def save_hardware(self):
-        #wszystkie czasy w tabelach sa z tej jednej maszyny - tu jest zapisane z jakiej
         import torch
         import ultralytics
 
@@ -41,7 +39,6 @@ class ResultsWriter:
         }])
 
     def plt(self):
-        #matplotlib laduje sie dlugo, a potrzebny jest tylko do obrazkow
         import matplotlib
         matplotlib.use("Agg")  #wykres tylko do pliku, bez otwierania okna
         import matplotlib.pyplot as plt
@@ -50,7 +47,7 @@ class ResultsWriter:
     def save_map_vs_fps_plot(self, summary, device_names, file_name):
         plt = self.plt()
 
-        #dokladnosc vs szybkosc - najlepszy model jest w prawym gornym rogu
+        #najlepszy model w prawym gornym rogu
         fig, ax = plt.subplots(figsize=(6, 4))
         for name in device_names:
             fps = [row[f"fps_{name}"] for row in summary]
@@ -96,7 +93,7 @@ class ResultsWriter:
         print(f"Zapisano {RESULTS_DIR / file_name}")
 
     def save_heatmap(self, file_name, title, row_names, column_names, values):
-        #tabela odpornosci jako obrazek, kolor 0 (czerwony) - 1 (zielony)
+        #tabela odpornosci jako obrazek, 0 (czerwony) - 1 (zielony)
         plt = self.plt()
         fig, ax = plt.subplots(figsize=(1.2 * len(column_names) + 2.5, 0.38 * len(row_names) + 1.8))
         ax.imshow(values, cmap="RdYlGn", vmin=0, vmax=1, aspect="auto")
